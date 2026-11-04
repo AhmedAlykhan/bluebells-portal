@@ -1,0 +1,53 @@
+/// <reference types="vite/client" />
+
+declare module 'lucide-react' {
+  import React from 'react';
+  export const Bell: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const User: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const LogOut: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const LayoutDashboard: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const BookOpen: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const GraduationCap: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const Users: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const Calendar: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const CheckSquare: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const FileText: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const Award: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const CreditCard: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const BarChart3: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const Settings: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const Building2: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const CheckCircle2: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const TrendingUp: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const ShieldCheck: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const Search: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const Plus: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const Filter: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const Download: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const Upload: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const Trash2: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const Edit: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const Eye: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const Clock: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const Check: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const X: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const AlertCircle: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const ChevronLeft: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const ChevronRight: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const Printer: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const ChevronDown: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const Lock: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const LogIn: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const Home: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const ShieldAlert: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const ArrowLeft: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const CheckCheck: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const Loader2: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const CheckCircle: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const Info: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const AlertTriangle: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const DollarSign: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const PlusCircle: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const UserPlus: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const FileCheck: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+}

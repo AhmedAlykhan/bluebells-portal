@@ -1,0 +1,37 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+spring:
+  application:
+    name: bluebells-lms
+  profiles:
+    active: dev
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    time-zone: Asia/Karachi
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+
+bluebells:
+  school:
+    name: "Bluebells Schooling System"
+    address: "Adjacent Autobahn Road, Next to VIP Garden, Unit 2, Latifabad, Hyderabad, Sindh, Pakistan, 71800"
+    email: "Bluebells.schoolingsystem@gmail.com"
+    phone: "+92 316 9681932"
+    timezone: "Asia/Karachi"
+    currency: "PKR"
+  jwt:
+    secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+    expiration-ms: 86400000 # 24h
+  storage:
+    upload-dir: ${STORAGE_DIR:./storage/uploads}
