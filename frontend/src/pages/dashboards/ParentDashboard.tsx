@@ -4,10 +4,12 @@ import {
   CheckCircle2, 
   CreditCard, 
   Award, 
-  ChevronRight
+  ChevronRight,
+  Printer
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { ReportCardModal } from '../../components/modals/ReportCardModal';
+import { FeeChallanModal } from '../../components/modals/FeeChallanModal';
 import { getReportCardByName } from '../../data/reportCardsData';
 import { apiClient } from '../../api/client';
 import { Link } from 'react-router-dom';
@@ -35,20 +37,8 @@ const DEFAULT_CHILDREN: Child[] = [
     attendanceRate: '96.2%',
     termResult: 'Grade A-1 (89.6%)',
     feeStatus: 'PAID',
-    feeAmount: 'Rs. 8,500',
+    feeAmount: 'Rs. 10,000',
     classTeacher: 'Sir Ahmed Khan'
-  },
-  {
-    id: 5,
-    name: 'Sara Khan',
-    className: 'Class 8-Rose (Middle School)',
-    rollNumber: '08-R-05',
-    admissionNumber: 'BSS-2025-0211',
-    attendanceRate: '94.5%',
-    termResult: 'Grade A (84.0%)',
-    feeStatus: 'PAID',
-    feeAmount: 'Rs. 7,500',
-    classTeacher: 'Sir Asif'
   }
 ];
 
@@ -57,6 +47,7 @@ export const ParentDashboard: React.FC = () => {
   const [children, setChildren] = useState<Child[]>(DEFAULT_CHILDREN);
   const [selectedChildIndex, setSelectedChildIndex] = useState(0);
   const [showReportCard, setShowReportCard] = useState(false);
+  const [showFeeChallan, setShowFeeChallan] = useState(false);
 
   useEffect(() => {
     async function fetchChildren() {
@@ -71,19 +62,19 @@ export const ParentDashboard: React.FC = () => {
             rollNumber?: string;
             admissionNumber?: string;
           }
-          const mapped: Child[] = res.data.data.map((c: RawChild, idx: number) => ({
+          const mapped: Child[] = res.data.data.map((c: RawChild) => ({
             id: c.id,
-            name: c.fullName || (idx === 0 ? 'Ali Khan' : 'Sara Khan'),
+            name: c.fullName || 'Ali Khan',
             className: c.activeClassName 
               ? `${c.activeClassName}${c.activeSectionName ? ' - ' + c.activeSectionName : ''}` 
-              : 'Class 9-A (Matriculation)',
-            rollNumber: c.rollNumber || '01',
-            admissionNumber: c.admissionNumber || `BSS-2026-000${c.id}`,
-            attendanceRate: idx === 0 ? '96.2%' : '94.5%',
-            termResult: idx === 0 ? 'Grade A-1 (89.6%)' : 'Grade A (84.0%)',
+              : 'Class 9-A (Matriculation Part I)',
+            rollNumber: c.rollNumber || '09-A-12',
+            admissionNumber: c.admissionNumber || 'BSS-2024-0104',
+            attendanceRate: '96.2%',
+            termResult: 'Grade A-1 (89.6%)',
             feeStatus: 'PAID',
-            feeAmount: idx === 0 ? 'Rs. 8,500' : 'Rs. 7,500',
-            classTeacher: idx === 0 ? 'Sir Ahmed Khan' : 'Sir Asif'
+            feeAmount: 'Rs. 10,000',
+            classTeacher: 'Sir Ahmed Khan'
           }));
           setChildren(mapped);
         }
@@ -109,26 +100,45 @@ export const ParentDashboard: React.FC = () => {
             Welcome, {parentName}
           </h2>
           <p className="text-emerald-100 text-sm mt-1 max-w-2xl">
-            Latifabad Campus • Overview for your enrolled wards at Bluebells Schooling System Hyderabad.
+            Latifabad Campus • Overview for your enrolled ward (Ali Khan) at Bluebells Schooling System Hyderabad.
           </p>
         </div>
 
-        {/* Child Selector Tabs */}
-        <div className="flex bg-emerald-950/40 p-1.5 rounded-xl border border-emerald-700/50">
-          {children.map((c, idx) => (
+        {/* Child Selector or Single Ward Quick Actions */}
+        {children.length > 1 ? (
+          <div className="flex bg-emerald-950/40 p-1.5 rounded-xl border border-emerald-700/50">
+            {children.map((c, idx) => (
+              <button
+                key={c.id}
+                onClick={() => setSelectedChildIndex(idx)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  selectedChildIndex === idx
+                    ? 'bg-white text-emerald-950 shadow'
+                    : 'text-emerald-200 hover:text-white'
+                }`}
+              >
+                {c.name} ({c.className.includes(' ') ? c.className.split(' ')[1] : c.className})
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-wrap items-center gap-2">
             <button
-              key={c.id}
-              onClick={() => setSelectedChildIndex(idx)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                selectedChildIndex === idx
-                  ? 'bg-white text-emerald-950 shadow'
-                  : 'text-emerald-200 hover:text-white'
-              }`}
+              onClick={() => setShowReportCard(true)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white text-emerald-950 font-bold rounded-lg shadow text-xs hover:bg-emerald-50 transition-colors"
             >
-              {c.name} ({c.className.includes(' ') ? c.className.split(' ')[1] : c.className})
+              <Award className="w-4 h-4 text-amber-500" />
+              <span>View Ali's Report Card</span>
             </button>
-          ))}
-        </div>
+            <button
+              onClick={() => setShowFeeChallan(true)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-purple-700 hover:bg-purple-800 text-white font-bold rounded-lg shadow text-xs transition-colors"
+            >
+              <Printer className="w-4 h-4 text-amber-300" />
+              <span>Print Ali's Fee Challan</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Selected Child Info & KPIs */}
@@ -283,6 +293,13 @@ export const ParentDashboard: React.FC = () => {
             >
               View Full Fee Ledger & Receipts
             </Link>
+            <button
+              onClick={() => setShowFeeChallan(true)}
+              className="mt-2 w-full py-2 bg-purple-700 hover:bg-purple-800 text-white text-center font-semibold text-xs rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+            >
+              <Printer className="w-3.5 h-3.5 text-amber-300" />
+              <span>Print 3-Copy Bank Challan</span>
+            </button>
           </div>
         </div>
       </div>
@@ -291,6 +308,12 @@ export const ParentDashboard: React.FC = () => {
         isOpen={showReportCard}
         onClose={() => setShowReportCard(false)}
         data={getReportCardByName(child.name)}
+      />
+
+      <FeeChallanModal
+        isOpen={showFeeChallan}
+        onClose={() => setShowFeeChallan(false)}
+        invoiceNumber="INV-202610-0001"
       />
     </div>
   );

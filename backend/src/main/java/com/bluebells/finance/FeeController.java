@@ -5,6 +5,8 @@ import com.bluebells.exception.ForbiddenException;
 import com.bluebells.finance.dto.*;
 import com.bluebells.security.AuthorizationService;
 import com.bluebells.security.UserPrincipal;
+import com.bluebells.guardians.GuardianService;
+import com.bluebells.students.dto.StudentDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -15,6 +17,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/finance")
@@ -23,10 +26,12 @@ public class FeeController {
 
     private final FeeService feeService;
     private final AuthorizationService authorizationService;
+    private final GuardianService guardianService;
 
-    public FeeController(FeeService feeService, AuthorizationService authorizationService) {
+    public FeeController(FeeService feeService, AuthorizationService authorizationService, GuardianService guardianService) {
         this.feeService = feeService;
         this.authorizationService = authorizationService;
+        this.guardianService = guardianService;
     }
 
     @PostMapping("/structures")
@@ -77,10 +82,17 @@ public class FeeController {
     }
 
     @GetMapping("/my-invoices")
-    @PreAuthorize("hasRole('STUDENT')")
-    @Operation(summary = "Get current student's own fee invoices")
+    @PreAuthorize("hasAnyRole('STUDENT', 'PARENT')")
+    @Operation(summary = "Get current student's own fee invoices or parent's linked children's invoices")
     public ResponseEntity<ApiResponse<List<FeeInvoiceDto>>> getMyInvoices(
             @AuthenticationPrincipal UserPrincipal principal) {
+        if (authorizationService.isParent(principal)) {
+            List<StudentDto> children = guardianService.getMyChildren(principal);
+            List<FeeInvoiceDto> invoices = children.stream()
+                    .flatMap(c -> feeService.getInvoicesForStudent(c.getId()).stream())
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok(ApiResponse.success(invoices));
+        }
         com.bluebells.students.Student student = authorizationService.getStudentForUser(principal.getId())
                 .orElseThrow(() -> new com.bluebells.exception.ResourceNotFoundException("Student profile not found"));
         List<FeeInvoiceDto> invoices = feeService.getInvoicesForStudent(student.getId());

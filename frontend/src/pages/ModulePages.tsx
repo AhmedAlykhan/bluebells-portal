@@ -377,7 +377,7 @@ interface DisplayStudent {
 
 const DEFAULT_STUDENTS: DisplayStudent[] = [
   { id: 'BSS-2026-0001', name: 'Ali Khan', class: 'Class 9-A', roll: '1', gender: 'Male', blood: 'B+', guardian: 'Mohammad Tariq Khan', phone: '+92 300 1234567', status: 'ACTIVE' },
-  { id: 'BSS-2026-0002', name: 'Sara Khan', class: 'Class 8-A', roll: '1', gender: 'Female', blood: 'O+', guardian: 'Mohammad Tariq Khan', phone: '+92 300 1234567', status: 'ACTIVE' },
+  { id: 'BSS-2026-0002', name: 'Sara Khan', class: 'Class 8-A', roll: '1', gender: 'Female', blood: 'O+', guardian: 'Abdul Hameed Khan', phone: '+92 300 9876543', status: 'ACTIVE' },
   { id: 'BSS-2026-0003', name: 'Shahid Afridi', class: 'Class 9-A', roll: '2', gender: 'Male', blood: 'A+', guardian: 'Abdul Rehman Afridi', phone: '+92 333 7654321', status: 'ACTIVE' },
   { id: 'BSS-2026-0004', name: 'Ayesha Siddiqui', class: 'Class 9-A', roll: '3', gender: 'Female', blood: 'B+', guardian: 'Dr. Siddiqui', phone: '+92 301 9876543', status: 'ACTIVE' },
   { id: 'BSS-2026-0005', name: 'Bilal Hassan', class: 'Class 9-B', roll: '1', gender: 'Male', blood: 'AB+', guardian: 'Hassan Raza', phone: '+92 302 4455667', status: 'ACTIVE' },
@@ -857,7 +857,7 @@ export function FeesPage() {
 
   const loadInvoices = useCallback(async () => {
     try {
-      const endpoint = isStudent ? '/finance/my-invoices' : '/finance/invoices';
+      const endpoint = (isStudent || isParent) ? '/finance/my-invoices' : '/finance/invoices';
       const res = await apiClient.get(endpoint);
       if (res.data?.data && Array.isArray(res.data.data) && res.data.data.length > 0) {
         interface RawInvoice {
@@ -891,7 +891,7 @@ export function FeesPage() {
     } catch {
       // Keep default fallback
     }
-  }, [isStudent]);
+  }, [isStudent, isParent]);
 
   useEffect(() => {
     if (!isTeacher) {
@@ -909,6 +909,10 @@ export function FeesPage() {
     setExporting(false);
   };
 
+  const displayedInvoices = (isStudent || isParent)
+    ? invoices.filter(inv => inv.student.toLowerCase().includes('ali khan') || inv.num.startsWith('INV-202610-0001') || inv.num.startsWith('INV-202611-0001'))
+    : invoices;
+
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -917,12 +921,14 @@ export function FeesPage() {
             Currency: PKR (DECIMAL(12,2))
           </span>
           <h2 className="text-xl font-bold text-slate-800 mt-2">
-            {isStudent ? 'My Tuition Fee Vouchers & Receipts' : (isParent ? 'Student Fee Challans & History' : 'Fee Ledger & Financial Invoicing')}
+            {isStudent ? 'My Tuition Fee Vouchers & Receipts' : (isParent ? "Ali Khan's Fee Challans & History" : 'Fee Ledger & Financial Invoicing')}
           </h2>
           <p className="text-sm text-slate-500">
             {isStudent 
               ? 'Bank Alfalah tuition fee challan, monthly invoices, and verified payment receipts.'
-              : 'Class fee structures, monthly tuition challans, FIFO payment allocation, and receipts.'}
+              : (isParent
+                ? 'Official Bank Alfalah tuition challan, fee record, and payment clearance for Ali Khan (Class 9-A).'
+                : 'Class fee structures, monthly tuition challans, FIFO payment allocation, and receipts.')}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -947,13 +953,13 @@ export function FeesPage() {
           )}
           <button 
             onClick={() => {
-              setSelectedChallanInvoice(isStudent ? 'INV-202610-0001' : (invoices[0]?.num || 'INV-202610-0001'));
+              setSelectedChallanInvoice((isStudent || isParent) ? 'INV-202610-0001' : (invoices[0]?.num || 'INV-202610-0001'));
               setShowChallanModal(true);
             }}
             className="px-4 py-2 bg-purple-700 hover:bg-purple-800 text-white font-semibold rounded-lg shadow text-xs transition-colors flex items-center gap-1.5"
           >
             <Printer className="w-4 h-4" />
-            <span>Print Official Challan Voucher</span>
+            <span>{isStudent ? 'Print My Fee Challan' : (isParent ? "Print Ali's Fee Challan" : 'Print Official Challan Voucher')}</span>
           </button>
         </div>
       </div>
@@ -991,13 +997,15 @@ export function FeesPage() {
         </div>
       )}
 
-      {/* Student Specific Current Voucher Card */}
-      {isStudent && (
+      {/* Student / Parent Specific Current Voucher Card */}
+      {(isStudent || isParent) && (
         <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5">
           <div className="flex items-center justify-between">
             <div>
               <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">Account Status</span>
-              <h3 className="text-xl font-extrabold text-emerald-950 mt-1">Tuition Fees Cleared</h3>
+              <h3 className="text-xl font-extrabold text-emerald-950 mt-1">
+                {isStudent ? 'My Tuition Fees Cleared' : "Ali Khan's Tuition Fees Cleared"}
+              </h3>
               <p className="text-xs text-emerald-700 mt-0.5">October 2026 Challan (INV-202610-0001) marked PAID via Online Transfer.</p>
             </div>
             <div className="text-right">
@@ -1011,7 +1019,7 @@ export function FeesPage() {
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
         <div className="p-4 border-b border-slate-200 bg-slate-50">
           <h3 className="text-sm font-bold text-slate-800">
-            {isStudent ? 'My Monthly Tuition Challans' : 'Monthly Tuition Invoices'}
+            {isStudent ? 'My Monthly Tuition Challans' : (isParent ? "Ali Khan's Monthly Tuition Challans" : 'Monthly Tuition Invoices')}
           </h3>
         </div>
         <table className="w-full text-left text-xs">
@@ -1029,7 +1037,7 @@ export function FeesPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {invoices.map((inv) => (
+            {displayedInvoices.map((inv) => (
               <tr key={inv.num}>
                 <td className="p-3 font-mono font-bold text-brand-700">{inv.num}</td>
                 <td className="p-3 font-semibold text-slate-800">{inv.student}</td>

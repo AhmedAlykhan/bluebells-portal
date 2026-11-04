@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, Printer, CheckCircle, Clock } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import { 
   DEMO_FEE_CHALLANS, 
   BANK_COLLECTION_DETAILS, 
@@ -17,15 +18,28 @@ export function FeeChallanModal({
   onClose,
   invoiceNumber: initialInvoiceNum,
 }: FeeChallanModalProps) {
+  const { user } = useAuth();
+  const isRestricted = user?.roles?.includes('ROLE_STUDENT') || user?.roles?.includes('ROLE_PARENT');
+
   const [selectedInvoice, setSelectedInvoice] = useState<string>(
     initialInvoiceNum || 'INV-202610-0001'
   );
 
   useEffect(() => {
     if (initialInvoiceNum && DEMO_FEE_CHALLANS[initialInvoiceNum]) {
-      setSelectedInvoice(initialInvoiceNum);
+      if (isRestricted && initialInvoiceNum !== 'INV-202610-0001' && initialInvoiceNum !== 'INV-202611-0001') {
+        setSelectedInvoice('INV-202610-0001');
+      } else {
+        setSelectedInvoice(initialInvoiceNum);
+      }
     }
-  }, [initialInvoiceNum]);
+  }, [initialInvoiceNum, isRestricted]);
+
+  useEffect(() => {
+    if (isRestricted && selectedInvoice !== 'INV-202610-0001' && selectedInvoice !== 'INV-202611-0001') {
+      setSelectedInvoice('INV-202610-0001');
+    }
+  }, [isRestricted, selectedInvoice]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -251,19 +265,33 @@ export function FeeChallanModal({
           </div>
 
           <div className="flex items-center gap-3 flex-wrap">
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-400 font-semibold">Challan / Student:</span>
-              <select
-                value={selectedInvoice}
-                onChange={(e) => setSelectedInvoice(e.target.value)}
-                className="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-xs font-bold text-amber-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
-              >
-                <option value="INV-202610-0001">Ali Khan (Class 9-A) — Oct 2026 (Paid)</option>
-                <option value="INV-202611-0001">Ali Khan (Class 9-A) — Nov 2026 (Due)</option>
-                <option value="INV-202610-0002">Shahid Afridi (Class 9-A) — Oct 2026</option>
-                <option value="INV-202610-0003">Sara Khan (Class 8-R) — Oct 2026</option>
-              </select>
-            </div>
+            {isRestricted ? (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-400 font-semibold">Challan Period:</span>
+                <select
+                  value={selectedInvoice}
+                  onChange={(e) => setSelectedInvoice(e.target.value)}
+                  className="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-xs font-bold text-amber-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="INV-202610-0001">Ali Khan (Class 9-A) — Oct 2026 (Paid)</option>
+                  <option value="INV-202611-0001">Ali Khan (Class 9-A) — Nov 2026 (Due)</option>
+                </select>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-400 font-semibold">Challan / Student:</span>
+                <select
+                  value={selectedInvoice}
+                  onChange={(e) => setSelectedInvoice(e.target.value)}
+                  className="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-xs font-bold text-amber-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="INV-202610-0001">Ali Khan (Class 9-A) — Oct 2026 (Paid)</option>
+                  <option value="INV-202611-0001">Ali Khan (Class 9-A) — Nov 2026 (Due)</option>
+                  <option value="INV-202610-0002">Shahid Afridi (Class 9-A) — Oct 2026</option>
+                  <option value="INV-202610-0003">Sara Khan (Class 8-R) — Oct 2026</option>
+                </select>
+              </div>
+            )}
 
             <button
               onClick={handlePrint}

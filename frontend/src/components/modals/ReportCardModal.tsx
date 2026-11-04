@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Printer, Award, CheckCircle } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import { 
   STUDENT_REPORT_CARDS, 
   ReportCardData, 
@@ -19,6 +20,9 @@ export const ReportCardModal: React.FC<ReportCardModalProps> = ({
   onClose,
   data: initialData
 }) => {
+  const { user } = useAuth();
+  const isRestricted = user?.roles?.includes('ROLE_STUDENT') || user?.roles?.includes('ROLE_PARENT');
+
   const [currentData, setCurrentData] = useState<ReportCardData>(
     initialData || STUDENT_REPORT_CARDS['ali-khan']
   );
@@ -28,11 +32,14 @@ export const ReportCardModal: React.FC<ReportCardModalProps> = ({
   const [printSize, setPrintSize] = useState<'A3' | 'A4'>('A3');
 
   useEffect(() => {
-    if (initialData) {
+    if (isRestricted) {
+      setCurrentData(STUDENT_REPORT_CARDS['ali-khan']);
+      setSelectedStudentKey('ali-khan');
+    } else if (initialData) {
       setCurrentData(initialData);
       if (initialData.id) setSelectedStudentKey(initialData.id);
     }
-  }, [initialData]);
+  }, [initialData, isRestricted]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -149,35 +156,45 @@ export const ReportCardModal: React.FC<ReportCardModalProps> = ({
 
         {/* Student Quick Switcher Toolbar (Hidden in Print) */}
         <div className="bg-slate-800 px-6 py-2 text-xs text-white flex flex-wrap items-center justify-between gap-3 border-b border-slate-700 print:hidden">
-          <div className="flex items-center gap-2">
-            <span className="text-slate-400 font-semibold">Select Student / Class Record:</span>
-            <select
-              value={selectedStudentKey}
-              onChange={(e) => {
-                const key = e.target.value;
-                setSelectedStudentKey(key);
-                if (STUDENT_REPORT_CARDS[key]) {
-                  setCurrentData(STUDENT_REPORT_CARDS[key]);
-                }
-              }}
-              className="px-3 py-1 bg-slate-900 border border-slate-600 rounded-md text-amber-300 font-bold text-xs focus:outline-none focus:ring-1 focus:ring-amber-400"
-            >
-              <optgroup label="Class 9 (Matriculation Part I)">
-                <option value="ali-khan">Ali Khan (09-A-12) — Rank #1 (89.6%)</option>
-                <option value="shahid-afridi">Shahid Afridi (09-A-02) — Rank #2 (83.5%)</option>
-                <option value="ayesha-siddiqui">Ayesha Siddiqui (09-A-03) — Rank #3 (80.1%)</option>
-              </optgroup>
-              <optgroup label="Class 10 (Matriculation Part II)">
-                <option value="bilal-hassan">Bilal Hassan (10-A-01) — Rank #1 (89.0%)</option>
-              </optgroup>
-              <optgroup label="Class 8 (Middle School)">
-                <option value="sara-khan">Sara Khan (08-R-05) — Rank #1 (91.7%)</option>
-              </optgroup>
-              <optgroup label="Class 5 (Primary School)">
-                <option value="zainab-bibi">Zainab Bibi (05-J-08) — Rank #1 (93.6%)</option>
-              </optgroup>
-            </select>
-          </div>
+          {isRestricted ? (
+            <div className="flex items-center gap-2">
+              <span className="text-slate-400 font-semibold">Official Student Record:</span>
+              <span className="px-3 py-1 bg-slate-900 border border-slate-600 rounded-md text-amber-300 font-bold text-xs flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                Ali Khan (09-A-12) — Class 9-A (Science) • Rank #1 (89.6%)
+              </span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="text-slate-400 font-semibold">Select Student / Class Record:</span>
+              <select
+                value={selectedStudentKey}
+                onChange={(e) => {
+                  const key = e.target.value;
+                  setSelectedStudentKey(key);
+                  if (STUDENT_REPORT_CARDS[key]) {
+                    setCurrentData(STUDENT_REPORT_CARDS[key]);
+                  }
+                }}
+                className="px-3 py-1 bg-slate-900 border border-slate-600 rounded-md text-amber-300 font-bold text-xs focus:outline-none focus:ring-2 focus:ring-amber-400"
+              >
+                <optgroup label="Class 9 (Matriculation Part I)">
+                  <option value="ali-khan">Ali Khan (09-A-12) — Rank #1 (89.6%)</option>
+                  <option value="shahid-afridi">Shahid Afridi (09-A-02) — Rank #2 (83.5%)</option>
+                  <option value="ayesha-siddiqui">Ayesha Siddiqui (09-A-03) — Rank #3 (80.1%)</option>
+                </optgroup>
+                <optgroup label="Class 10 (Matriculation Part II)">
+                  <option value="bilal-hassan">Bilal Hassan (10-A-01) — Rank #1 (89.0%)</option>
+                </optgroup>
+                <optgroup label="Class 8 (Middle School)">
+                  <option value="sara-khan">Sara Khan (08-R-05) — Rank #1 (91.7%)</option>
+                </optgroup>
+                <optgroup label="Class 5 (Primary School)">
+                  <option value="zainab-bibi">Zainab Bibi (05-J-08) — Rank #1 (93.6%)</option>
+                </optgroup>
+              </select>
+            </div>
+          )}
           <span className="text-[11px] text-emerald-400 font-semibold bg-emerald-950/60 px-2.5 py-0.5 rounded border border-emerald-800/60 flex items-center gap-1">
             <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
             Verified Term Examination Record

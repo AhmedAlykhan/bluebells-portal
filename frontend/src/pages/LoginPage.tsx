@@ -49,7 +49,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ schoolProfile }) => {
     { role: 'Academic Principal', user: 'principal', desc: 'Huma Arif • Academic leadership & institutional oversight', icon: Building2, color: 'text-brand-700 bg-brand-50 hover:bg-brand-100 border-brand-200' },
     { role: 'Teacher (Mathematics)', user: 'teacher.ahmed', desc: 'Sir Ahmed Khan • Class 9-A teacher & LMS', icon: BookOpen, color: 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border-emerald-200' },
     { role: 'Accountant', user: 'accountant', desc: 'Syed Tariq • Fee ledger, receipts & challans', icon: CreditCard, color: 'text-amber-700 bg-amber-50 hover:bg-amber-100 border-amber-200' },
-    { role: 'Parent (Guardian)', user: 'parent.khan', desc: 'Mohammad Tariq Khan • Multi-child parent (Ali & Sara)', icon: Users, color: 'text-blue-700 bg-blue-50 hover:bg-blue-100 border-blue-200' },
+    { role: 'Parent (Guardian)', user: 'parent.khan', desc: 'Mohammad Tariq Khan • Father of Ali Khan (Class 9-A)', icon: Users, color: 'text-blue-700 bg-blue-50 hover:bg-blue-100 border-blue-200' },
     { role: 'Student (Class 9-A)', user: 'student.ali', desc: 'Ali Khan • Homework submissions & report card', icon: GraduationCap, color: 'text-indigo-700 bg-indigo-50 hover:bg-indigo-100 border-indigo-200' },
   ];
 
