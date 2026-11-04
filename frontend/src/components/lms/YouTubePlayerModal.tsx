@@ -75,10 +75,10 @@ export function YouTubePlayerModal({
         {/* Video Player (16:9 Aspect Ratio) */}
         <div className="relative w-full bg-black aspect-video flex-shrink-0">
           <iframe
-            src={`https://www.youtube.com/embed/${video.videoId}?autoplay=1&rel=0&modestbranding=1`}
+            src={`https://www.youtube.com/embed/${video.videoId}?autoplay=1&rel=0&modestbranding=1&enablejsapi=1`}
             title={video.title}
             className="absolute inset-0 w-full h-full border-0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
           />
         </div>

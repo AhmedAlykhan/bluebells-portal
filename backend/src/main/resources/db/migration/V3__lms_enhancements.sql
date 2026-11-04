@@ -153,10 +153,10 @@ INSERT IGNORE INTO lms_learning_resources (id, course_id, module_id, lesson_id, 
 
 -- Seed YouTube Educational Video Lectures
 INSERT IGNORE INTO lms_youtube_videos (id, course_id, module_id, lesson_id, title, description, youtube_url, video_id, duration_seconds, display_order) VALUES
-(1, 1, 1, 1, 'Understanding Complex Numbers: Real & Imaginary Parts', 'Clear conceptual breakdown of the complex plane, imaginary unit i, and algebraic conjugates.', 'https://www.youtube.com/watch?v=5PcpBw5HbWo', '5PcpBw5HbWo', 840, 1),
-(2, 1, 2, 4, 'Laws of Logarithms with Practical Step-by-Step Proofs', 'Visual proofs of logarithmic laws with worked examples from past Matriculation board exams.', 'https://www.youtube.com/watch?v=mQTWzLpCcW0', 'mQTWzLpCcW0', 960, 2),
+(1, 1, 1, 1, 'Understanding Complex Numbers: Real & Imaginary Parts', 'Clear conceptual breakdown of the complex plane, imaginary unit i, and algebraic conjugates.', 'https://www.youtube.com/watch?v=SP-YJe7Vldo', 'SP-YJe7Vldo', 840, 1),
+(2, 1, 2, 4, 'Laws of Logarithms with Practical Step-by-Step Proofs', 'Visual proofs of logarithmic laws with worked examples from past Matriculation board exams.', 'https://www.youtube.com/watch?v=Z5myJ8dg_rM', 'Z5myJ8dg_rM', 960, 2),
 (3, 2, 4, 5, 'How to Read a Vernier Caliper (Zero Error & Vernier Scale)', 'Detailed demonstration on using a metric Vernier caliper to measure cylindrical diameter.', 'https://www.youtube.com/watch?v=vkPlzmalvN4', 'vkPlzmalvN4', 720, 1),
-(4, 3, 6, 7, 'The Von Neumann Architecture Explained', 'Animated guide to CPU architecture, busses, register files, and program counter operations.', 'https://www.youtube.com/watch?v=jfq6s2bC57k', 'jfq6s2bC57k', 650, 1);
+(4, 3, 6, 7, 'The Von Neumann Architecture Explained', 'Animated guide to CPU architecture, busses, register files, and program counter operations.', 'https://www.youtube.com/watch?v=KBmoqwVt4Qg', 'KBmoqwVt4Qg', 650, 1);
 
 -- Seed Assignments
 INSERT IGNORE INTO assignments (id, course_id, module_id, title, instructions, max_marks, passing_marks, due_date, allow_late_submission, allowed_formats, status, attachment_url, attachment_name, attachment_size_bytes) VALUES
