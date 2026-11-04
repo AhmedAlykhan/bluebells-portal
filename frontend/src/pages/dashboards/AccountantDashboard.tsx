@@ -4,10 +4,12 @@ import {
   TrendingUp, 
   FileText, 
   AlertTriangle,
-  PlusCircle
+  PlusCircle,
+  Printer
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { RecordPaymentModal } from '../../components/modals/RecordPaymentModal';
+import { FeeChallanModal } from '../../components/modals/FeeChallanModal';
 import { apiClient } from '../../api/client';
 import { Link } from 'react-router-dom';
 
@@ -30,6 +32,7 @@ const DEFAULT_TRANSACTIONS: TransactionItem[] = [
 export const AccountantDashboard: React.FC = () => {
   const { user } = useAuth();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showChallanModal, setShowChallanModal] = useState(false);
   const [recentTransactions, setRecentTransactions] = useState<TransactionItem[]>(DEFAULT_TRANSACTIONS);
 
   const loadPayments = useCallback(async () => {
@@ -88,6 +91,13 @@ export const AccountantDashboard: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setShowChallanModal(true)}
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-purple-700 hover:bg-purple-800 text-white font-semibold rounded-lg shadow text-xs transition-colors"
+          >
+            <Printer className="w-4 h-4 text-amber-300" />
+            <span>Print 3-Copy Fee Challan</span>
+          </button>
           <button
             onClick={() => setShowPaymentModal(true)}
             className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shadow text-xs transition-colors"
@@ -167,6 +177,12 @@ export const AccountantDashboard: React.FC = () => {
         isOpen={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
         onSuccess={loadPayments}
+      />
+
+      <FeeChallanModal
+        isOpen={showChallanModal}
+        onClose={() => setShowChallanModal(false)}
+        invoiceNumber="INV-202610-0001"
       />
     </div>
   );

@@ -13,6 +13,7 @@ import { useAuth } from '../context/AuthContext';
 import { NewAdmissionModal } from '../components/modals/NewAdmissionModal';
 import { MarkAttendanceModal } from '../components/modals/MarkAttendanceModal';
 import { RecordPaymentModal } from '../components/modals/RecordPaymentModal';
+import { FeeChallanModal } from '../components/modals/FeeChallanModal';
 import { ReportCardModal } from '../components/modals/ReportCardModal';
 import { GenerateReportCardModal } from '../components/modals/GenerateReportCardModal';
 import { 
@@ -846,6 +847,8 @@ const DEFAULT_INVOICES: DisplayInvoice[] = [
 export function FeesPage() {
   const { user } = useAuth();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showChallanModal, setShowChallanModal] = useState(false);
+  const [selectedChallanInvoice, setSelectedChallanInvoice] = useState<string>('INV-202610-0001');
   const [invoices, setInvoices] = useState<DisplayInvoice[]>(DEFAULT_INVOICES);
   const [exporting, setExporting] = useState(false);
   const isTeacher = user?.roles?.includes('ROLE_TEACHER');
@@ -942,15 +945,16 @@ export function FeesPage() {
               </button>
             </>
           )}
-          {(isStudent || isParent) && (
-            <button 
-              onClick={() => window.print()}
-              className="px-4 py-2 bg-brand-700 text-white font-semibold rounded-lg shadow text-xs hover:bg-brand-800 transition-colors flex items-center gap-1.5"
-            >
-              <Printer className="w-4 h-4" />
-              <span>Print Official Challan Voucher</span>
-            </button>
-          )}
+          <button 
+            onClick={() => {
+              setSelectedChallanInvoice(isStudent ? 'INV-202610-0001' : (invoices[0]?.num || 'INV-202610-0001'));
+              setShowChallanModal(true);
+            }}
+            className="px-4 py-2 bg-purple-700 hover:bg-purple-800 text-white font-semibold rounded-lg shadow text-xs transition-colors flex items-center gap-1.5"
+          >
+            <Printer className="w-4 h-4" />
+            <span>Print Official Challan Voucher</span>
+          </button>
         </div>
       </div>
 
@@ -958,6 +962,12 @@ export function FeesPage() {
         isOpen={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
         onSuccess={loadInvoices}
+      />
+
+      <FeeChallanModal
+        isOpen={showChallanModal}
+        onClose={() => setShowChallanModal(false)}
+        invoiceNumber={selectedChallanInvoice}
       />
 
       {/* KPI Cards: Only for Finance Staff / Admin */}
@@ -1015,6 +1025,7 @@ export function FeesPage() {
               <th className="p-3">Balance Due</th>
               <th className="p-3">Due Date</th>
               <th className="p-3">Status</th>
+              <th className="p-3 text-right">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -1031,6 +1042,19 @@ export function FeesPage() {
                   <span className={`px-2 py-0.5 rounded-full font-semibold ${inv.badge}`}>
                     {inv.status}
                   </span>
+                </td>
+                <td className="p-3 text-right">
+                  <button
+                    onClick={() => {
+                      setSelectedChallanInvoice(inv.num);
+                      setShowChallanModal(true);
+                    }}
+                    className="px-2.5 py-1 bg-purple-50 hover:bg-purple-100 text-purple-700 font-semibold rounded text-xs inline-flex items-center gap-1 border border-purple-200 transition-colors"
+                    title="View / Print 3-Copy Bank Challan"
+                  >
+                    <Printer className="w-3.5 h-3.5" />
+                    <span>Challan</span>
+                  </button>
                 </td>
               </tr>
             ))}

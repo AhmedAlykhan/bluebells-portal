@@ -6,10 +6,12 @@ import {
   Calendar, 
   Award, 
   FileText,
-  ChevronRight
+  ChevronRight,
+  Printer
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { ReportCardModal } from '../../components/modals/ReportCardModal';
+import { FeeChallanModal } from '../../components/modals/FeeChallanModal';
 import { getReportCardByName } from '../../data/reportCardsData';
 import { apiClient } from '../../api/client';
 import { Link } from 'react-router-dom';
@@ -17,6 +19,7 @@ import { Link } from 'react-router-dom';
 export const StudentDashboard: React.FC = () => {
   const { user } = useAuth();
   const [showReportCard, setShowReportCard] = useState(false);
+  const [showFeeChallan, setShowFeeChallan] = useState(false);
   const [studentProfile, setStudentProfile] = useState<{
     fullName?: string;
     className?: string;
@@ -102,6 +105,13 @@ export const StudentDashboard: React.FC = () => {
           >
             <Award className="w-4 h-4 text-amber-500" />
             <span>View Sindh Board Report Card</span>
+          </button>
+          <button
+            onClick={() => setShowFeeChallan(true)}
+            className="inline-flex items-center gap-1.5 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow text-xs transition-colors"
+          >
+            <Printer className="w-4 h-4 text-amber-300" />
+            <span>Print 3-Copy Fee Challan</span>
           </button>
         </div>
       </div>
@@ -231,6 +241,13 @@ export const StudentDashboard: React.FC = () => {
         isOpen={showReportCard}
         onClose={() => setShowReportCard(false)}
         data={getReportCardByName(studentName)}
+      />
+
+      {/* Official 3-Copy Bank Fee Challan Modal */}
+      <FeeChallanModal
+        isOpen={showFeeChallan}
+        onClose={() => setShowFeeChallan(false)}
+        invoiceNumber="INV-202610-0001"
       />
     </div>
   );

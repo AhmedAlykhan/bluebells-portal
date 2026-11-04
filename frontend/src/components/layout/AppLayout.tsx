@@ -31,21 +31,27 @@ export const AppLayout: React.FC = () => {
   const activeRole = user.roles?.[0] || 'ROLE_SCHOOL_ADMIN';
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-100">
-      <Header 
-        schoolProfile={profile} 
-        activeRole={activeRole} 
-        currentUser={user}
-        onLogout={logout}
-        onSwitchPersona={switchPersona}
-      />
-      <div className="flex flex-1">
-        <Sidebar activeRole={activeRole} />
-        <main className="flex-1 p-6 lg:p-8 max-w-7xl">
+    <div className="min-h-screen flex flex-col bg-slate-100 print:bg-white print:min-h-0">
+      <div className="print:hidden">
+        <Header 
+          schoolProfile={profile} 
+          activeRole={activeRole} 
+          currentUser={user}
+          onLogout={logout}
+          onSwitchPersona={switchPersona}
+        />
+      </div>
+      <div className="flex flex-1 print:block">
+        <div className="print:hidden">
+          <Sidebar activeRole={activeRole} />
+        </div>
+        <main className="flex-1 p-6 lg:p-8 max-w-7xl print:p-0 print:m-0 print:max-w-none print:w-full">
           <Outlet context={{ schoolProfile: profile, user }} />
         </main>
       </div>
-      <Footer schoolProfile={profile} />
+      <div className="print:hidden">
+        <Footer schoolProfile={profile} />
+      </div>
     </div>
   );
 };
