@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { ReportCardModal } from '../../components/modals/ReportCardModal';
+import { getReportCardByName } from '../../data/reportCardsData';
 import { apiClient } from '../../api/client';
 import { Link } from 'react-router-dom';
 
@@ -229,6 +230,7 @@ export const StudentDashboard: React.FC = () => {
       <ReportCardModal
         isOpen={showReportCard}
         onClose={() => setShowReportCard(false)}
+        data={getReportCardByName(studentName)}
       />
     </div>
   );

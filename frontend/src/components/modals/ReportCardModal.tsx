@@ -1,36 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Printer, Award } from 'lucide-react';
+import { 
+  STUDENT_REPORT_CARDS, 
+  ReportCardData, 
+  SubjectResult 
+} from '../../data/reportCardsData';
 
-export interface SubjectResult {
-  code: string;
-  name: string;
-  totalMarks: number;
-  obtainedMarks: number;
-  grade: string;
-  remarks: string;
-}
-
-export interface ReportCardData {
-  studentName: string;
-  rollNumber: string;
-  admissionNumber: string;
-  className: string;
-  sectionName: string;
-  session: string;
-  examTerm: string;
-  bFormNumber: string;
-  attendancePercentage: number;
-  totalWorkingDays: number;
-  daysPresent: number;
-  subjects: SubjectResult[];
-  overallTotal: number;
-  overallObtained: number;
-  overallPercentage: number;
-  overallGrade: string;
-  overallRemarks: string;
-  positionInSection?: string;
-  issuedDate: string;
-}
+export type { SubjectResult, ReportCardData };
 
 interface ReportCardModalProps {
   isOpen: boolean;
@@ -38,42 +14,25 @@ interface ReportCardModalProps {
   data?: ReportCardData;
 }
 
-const DEFAULT_REPORT_CARD: ReportCardData = {
-  studentName: 'Ali Khan',
-  rollNumber: '09-A-12',
-  admissionNumber: 'BSS-2024-0104',
-  className: 'Class 9 (Matriculation Part I)',
-  sectionName: 'Section A',
-  session: '2026-2027',
-  examTerm: 'Midterm Examination 2026',
-  bFormNumber: '41303-1234567-1',
-  attendancePercentage: 96.2,
-  totalWorkingDays: 52,
-  daysPresent: 50,
-  subjects: [
-    { code: 'MATH-09', name: 'Mathematics (Sindh Textbook Board)', totalMarks: 100, obtainedMarks: 94, grade: 'A-1', remarks: 'Outstanding analytical ability' },
-    { code: 'PHY-09', name: 'Physics (Theory & Practical)', totalMarks: 100, obtainedMarks: 88, grade: 'A-1', remarks: 'Excellent lab demonstration' },
-    { code: 'CHEM-09', name: 'Chemistry', totalMarks: 100, obtainedMarks: 85, grade: 'A', remarks: 'Strong theoretical grasp' },
-    { code: 'ENG-09', name: 'English Compulsory', totalMarks: 100, obtainedMarks: 89, grade: 'A-1', remarks: 'Fluent comprehension and essay writing' },
-    { code: 'URD-09', name: 'Urdu Salees', totalMarks: 100, obtainedMarks: 82, grade: 'A', remarks: 'Good classical vocabulary' },
-    { code: 'SND-09', name: 'Sindhi Compulsory (Normal)', totalMarks: 75, obtainedMarks: 68, grade: 'A-1', remarks: 'Remarkable grammar & handwriting' },
-    { code: 'ISL-09', name: 'Islamiat / Pakistan Studies', totalMarks: 75, obtainedMarks: 70, grade: 'A-1', remarks: 'Comprehensive understanding' },
-    { code: 'CS-09', name: 'Computer Science (Python & DB)', totalMarks: 100, obtainedMarks: 96, grade: 'A-1', remarks: 'Exemplary programming coursework' },
-  ],
-  overallTotal: 750,
-  overallObtained: 672,
-  overallPercentage: 89.6,
-  overallGrade: 'A-1 Distinction',
-  overallRemarks: 'Promoted with Honours. Exceptional discipline and academic aptitude throughout the term.',
-  positionInSection: '1st in Section',
-  issuedDate: '28 October 2026'
-};
-
 export const ReportCardModal: React.FC<ReportCardModalProps> = ({
   isOpen,
   onClose,
-  data = DEFAULT_REPORT_CARD
+  data: initialData
 }) => {
+  const [currentData, setCurrentData] = useState<ReportCardData>(
+    initialData || STUDENT_REPORT_CARDS['ali-khan']
+  );
+  const [selectedStudentKey, setSelectedStudentKey] = useState<string>(
+    initialData?.id || 'ali-khan'
+  );
+
+  useEffect(() => {
+    if (initialData) {
+      setCurrentData(initialData);
+      if (initialData.id) setSelectedStudentKey(initialData.id);
+    }
+  }, [initialData]);
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -88,6 +47,8 @@ export const ReportCardModal: React.FC<ReportCardModalProps> = ({
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
+
+  const data = currentData;
 
   const handlePrint = () => {
     window.print();
@@ -129,6 +90,42 @@ export const ReportCardModal: React.FC<ReportCardModalProps> = ({
               <span>Close (Esc)</span>
             </button>
           </div>
+        </div>
+
+        {/* Quick Student Transcript Switcher Toolbar (print:hidden) */}
+        <div className="bg-slate-800 px-6 py-2.5 text-xs text-white flex flex-wrap items-center justify-between gap-3 border-b border-slate-700 print:hidden">
+          <div className="flex items-center gap-2">
+            <span className="text-slate-400 font-semibold">Select Student / Class Transcript:</span>
+            <select
+              value={selectedStudentKey}
+              onChange={(e) => {
+                const key = e.target.value;
+                setSelectedStudentKey(key);
+                if (STUDENT_REPORT_CARDS[key]) {
+                  setCurrentData(STUDENT_REPORT_CARDS[key]);
+                }
+              }}
+              className="px-3 py-1 bg-slate-900 border border-slate-600 rounded-md text-amber-300 font-bold text-xs focus:outline-none focus:ring-1 focus:ring-amber-400"
+            >
+              <optgroup label="Class 9 (Matriculation Part I)">
+                <option value="ali-khan">Ali Khan (09-A-12) — Rank #1 (89.6%)</option>
+                <option value="shahid-afridi">Shahid Afridi (09-A-02) — Rank #2 (83.5%)</option>
+                <option value="ayesha-siddiqui">Ayesha Siddiqui (09-A-03) — Rank #3 (80.1%)</option>
+              </optgroup>
+              <optgroup label="Class 10 (Matriculation Part II)">
+                <option value="bilal-hassan">Bilal Hassan (10-A-01) — Rank #1 (89.0%)</option>
+              </optgroup>
+              <optgroup label="Class 8 (Middle School)">
+                <option value="sara-khan">Sara Khan (08-R-05) — Rank #1 (91.7%)</option>
+              </optgroup>
+              <optgroup label="Class 5 (Primary School)">
+                <option value="zainab-bibi">Zainab Bibi (05-J-08) — Rank #1 (93.6%)</option>
+              </optgroup>
+            </select>
+          </div>
+          <span className="text-[11px] text-emerald-400 font-semibold bg-emerald-950/60 px-2.5 py-0.5 rounded border border-emerald-800/60">
+            Sindh Board Examination Standard
+          </span>
         </div>
 
         {/* Printable Transcript Document */}

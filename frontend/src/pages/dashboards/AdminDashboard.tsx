@@ -13,12 +13,16 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { ReportCardModal } from '../../components/modals/ReportCardModal';
+import { GenerateReportCardModal } from '../../components/modals/GenerateReportCardModal';
+import { ReportCardData } from '../../data/reportCardsData';
 import { NewAdmissionModal } from '../../components/modals/NewAdmissionModal';
 import { MarkAttendanceModal } from '../../components/modals/MarkAttendanceModal';
 
 export const AdminDashboard: React.FC = () => {
   const { user } = useAuth();
   const [showReportCard, setShowReportCard] = useState(false);
+  const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [selectedReportCardData, setSelectedReportCardData] = useState<ReportCardData | undefined>(undefined);
   const [showAdmissionModal, setShowAdmissionModal] = useState(false);
   const [showMarkAttendance, setShowMarkAttendance] = useState(false);
 
@@ -60,7 +64,7 @@ export const AdminDashboard: React.FC = () => {
             <span>Mark Attendance</span>
           </button>
           <button
-            onClick={() => setShowReportCard(true)}
+            onClick={() => setShowGenerateModal(true)}
             className="px-3 py-2 bg-white text-brand-900 font-semibold rounded-lg shadow text-xs hover:bg-brand-50 transition-colors flex items-center gap-1.5"
           >
             <Award className="w-3.5 h-3.5 text-amber-500" />
@@ -152,9 +156,20 @@ export const AdminDashboard: React.FC = () => {
       </div>
 
       {/* Modals */}
+      <GenerateReportCardModal
+        isOpen={showGenerateModal}
+        onClose={() => setShowGenerateModal(false)}
+        onGenerate={(cardData) => {
+          setSelectedReportCardData(cardData);
+          setShowGenerateModal(false);
+          setShowReportCard(true);
+        }}
+      />
+
       <ReportCardModal
         isOpen={showReportCard}
         onClose={() => setShowReportCard(false)}
+        data={selectedReportCardData}
       />
 
       <NewAdmissionModal

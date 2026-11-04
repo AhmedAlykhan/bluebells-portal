@@ -14,6 +14,12 @@ import { NewAdmissionModal } from '../components/modals/NewAdmissionModal';
 import { MarkAttendanceModal } from '../components/modals/MarkAttendanceModal';
 import { RecordPaymentModal } from '../components/modals/RecordPaymentModal';
 import { ReportCardModal } from '../components/modals/ReportCardModal';
+import { GenerateReportCardModal } from '../components/modals/GenerateReportCardModal';
+import { 
+  getReportCardByStudentKey, 
+  getReportCardByName, 
+  ReportCardData 
+} from '../data/reportCardsData';
 import { ForbiddenPage } from '../components/auth/ForbiddenPage';
 import { apiClient } from '../api/client';
 
@@ -737,16 +743,19 @@ export function LmsPage() {
 export function ExaminationsPage() {
   const { user } = useAuth();
   const [showReportCard, setShowReportCard] = useState(false);
+  const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [selectedCardData, setSelectedCardData] = useState<ReportCardData | undefined>(undefined);
   const isStudent = user?.roles?.includes('ROLE_STUDENT');
   const isParent = user?.roles?.includes('ROLE_PARENT');
 
   const allReportCards = [
-    { rank: 1, name: 'Ali Khan', id: 'BSS-2026-0001', section: '9-A', obtained: '182.00', total: '200.00', pct: '91.00%', grade: 'A+', att: '96.0%', remark: 'Outstanding performance. First Position.' },
-    { rank: 2, name: 'Shahid Afridi', id: 'BSS-2026-0003', section: '9-A', obtained: '167.00', total: '200.00', pct: '83.50%', grade: 'A+', att: '92.0%', remark: 'Very good conceptual clarity and analytical grasp.' },
+    { rank: 1, key: 'ali-khan', name: 'Ali Khan', id: 'BSS-2024-0104', section: '9-A', obtained: '672.00', total: '750.00', pct: '89.60%', grade: 'A-1', att: '96.2%', remark: 'Outstanding performance. First Position.' },
+    { rank: 2, key: 'shahid-afridi', name: 'Shahid Afridi', id: 'BSS-2026-0003', section: '9-A', obtained: '626.00', total: '750.00', pct: '83.50%', grade: 'A-1', att: '92.3%', remark: 'Very good conceptual clarity and analytical grasp.' },
+    { rank: 3, key: 'ayesha-siddiqui', name: 'Ayesha Siddiqui', id: 'BSS-2026-0004', section: '9-A', obtained: '601.00', total: '750.00', pct: '80.10%', grade: 'A-1', att: '94.2%', remark: 'Diligent and consistent academic excellence.' },
   ];
 
   const reportCards = isStudent
-    ? allReportCards.filter(r => r.name === (user?.fullName || 'Ali Khan'))
+    ? allReportCards.filter(r => r.name.toLowerCase().includes(user?.fullName?.toLowerCase() || 'ali khan'))
     : (isParent ? allReportCards.filter(r => r.name === 'Ali Khan') : allReportCards);
 
   return (
@@ -764,17 +773,36 @@ export function ExaminationsPage() {
           </p>
         </div>
         <button
-          onClick={() => setShowReportCard(true)}
+          onClick={() => {
+            if (isStudent || isParent) {
+              const studentName = user?.fullName || 'Ali Khan';
+              setSelectedCardData(getReportCardByName(studentName));
+              setShowReportCard(true);
+            } else {
+              setShowGenerateModal(true);
+            }
+          }}
           className="px-4 py-2 bg-brand-700 hover:bg-brand-800 text-white rounded-lg text-xs font-semibold shadow transition-colors flex items-center gap-1.5"
         >
           <Award className="w-4 h-4 text-amber-400" />
-          <span>View Sindh Board Report Card</span>
+          <span>{isStudent ? 'View My Report Card' : 'Generate & Select Report Card'}</span>
         </button>
       </div>
+
+      <GenerateReportCardModal
+        isOpen={showGenerateModal}
+        onClose={() => setShowGenerateModal(false)}
+        onGenerate={(data) => {
+          setSelectedCardData(data);
+          setShowGenerateModal(false);
+          setShowReportCard(true);
+        }}
+      />
 
       <ReportCardModal
         isOpen={showReportCard}
         onClose={() => setShowReportCard(false)}
+        data={selectedCardData}
       />
 
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
@@ -808,7 +836,10 @@ export function ExaminationsPage() {
                 <td className="p-3 text-slate-600">{rc.att}</td>
                 <td className="p-3">
                   <button
-                    onClick={() => setShowReportCard(true)}
+                    onClick={() => {
+                      setSelectedCardData(getReportCardByStudentKey(rc.key));
+                      setShowReportCard(true);
+                    }}
                     className="px-2.5 py-1 bg-brand-50 hover:bg-brand-100 text-brand-800 rounded font-semibold text-[11px] transition-colors"
                   >
                     View Report Card
