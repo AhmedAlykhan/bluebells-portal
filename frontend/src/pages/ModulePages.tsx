@@ -210,7 +210,7 @@ export function AcademicsPage() {
       {activeTab === 'faculty' && (
         <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
           <h3 className="text-base font-bold text-slate-800 mb-4">Teaching Faculty Assignments</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="p-4 rounded-lg bg-slate-50 border border-slate-200">
               <p className="font-bold text-slate-800">Sir Ahmed Khan</p>
               <p className="text-xs text-slate-500">Senior Faculty • Mathematics</p>
@@ -228,11 +228,19 @@ export function AcademicsPage() {
               </div>
             </div>
             <div className="p-4 rounded-lg bg-slate-50 border border-slate-200">
-              <p className="font-bold text-slate-800">Dr. Asim Farooqui</p>
+              <p className="font-bold text-slate-800">Hana Khan</p>
+              <p className="text-xs text-slate-500">Vice Principal</p>
+              <div className="mt-2 text-xs text-slate-600 space-y-1">
+                <p>• Academic Coordination & Timetable</p>
+                <p>• Faculty & Student Affairs</p>
+              </div>
+            </div>
+            <div className="p-4 rounded-lg bg-slate-50 border border-slate-200">
+              <p className="font-bold text-slate-800">Huma Arif</p>
               <p className="text-xs text-slate-500">Academic Principal</p>
               <div className="mt-2 text-xs text-slate-600 space-y-1">
-                <p>• Overall Academic Supervision</p>
-                <p>• Examination Moderation</p>
+                <p>• Overall Institutional Supervision</p>
+                <p>• Examination Moderation & Approval</p>
               </div>
             </div>
           </div>

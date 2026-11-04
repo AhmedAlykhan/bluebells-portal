@@ -73,7 +73,7 @@ All demonstration user accounts are pre-configured with the standard password:
 | Role | Username | Full Name / Persona | Accessible Scope |
 | :--- | :--- | :--- | :--- |
 | **Super Admin** | `admin` | Platform Administrator | Full system configuration, security audit, all modules |
-| **Principal** | `principal` | Dr. Asim Farooqui | Academics, staff, exams, admissions, report approval |
+| **Principal** | `principal` | Huma Arif | Academics, staff, exams, admissions, report approval |
 | **Teacher** | `teacher.ahmed` | Sir Ahmed Khan (Math) | Assigned classes (9-A, 10-A), coursework, attendance |
 | **Teacher** | `teacher.fatima` | Miss Fatima Shah (Physics) | Assigned classes (9-A), coursework, submissions grading |
 | **Accountant** | `accountant` | Syed Tariq Mahmood | Invoices, fee collection, discount policies, financial exports |

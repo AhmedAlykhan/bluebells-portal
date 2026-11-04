@@ -27,7 +27,7 @@ This audit report documents the remediation and verification of six critical int
      - Header: Institutional insignia, Bluebells Schooling System Latifabad, Board Affiliation No., Roll Number, Examination Session (Annual 2026).
      - Subject breakdown table: Mathematics, Physics, Chemistry, Computer Science, English Compulsory, Urdu Salees, Sindhi Salees, and Islamiat/Ethics.
      - Metrics: Total Marks (850), Obtained Marks (762), Percentage (89.6%), Grade (A-1 Distinction), GPA (3.92), Division (First).
-     - Signatures: Class Teacher (Sir Ahmed Khan), Headmaster/Principal (Dr. Asim Farooqui), and Examination Controller.
+     - Signatures: Class Teacher (Sir Ahmed Khan), Vice Principal (Hana Khan), Examination Controller, and Principal (Huma Arif).
      - Controls: Integrated `window.print()` trigger with dedicated CSS print styling (`@media print`) allowing instant PDF generation or paper printing.
   2. Implemented backend self-service endpoint `GET /api/v1/exams/my-report-cards` and IDOR-guarded `GET /api/v1/exams/students/{studentId}/report-cards` in `ExamController.java`.
 - **Verification Evidence**:

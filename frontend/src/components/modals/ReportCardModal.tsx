@@ -1,3 +1,4 @@
+import React, { useEffect } from 'react';
 import { X, Printer, Award } from 'lucide-react';
 
 export interface SubjectResult {
@@ -73,6 +74,19 @@ export const ReportCardModal: React.FC<ReportCardModalProps> = ({
   onClose,
   data = DEFAULT_REPORT_CARD
 }) => {
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handlePrint = () => {
@@ -80,15 +94,25 @@ export const ReportCardModal: React.FC<ReportCardModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="relative bg-white w-full max-w-4xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-8">
-        {/* Header Bar */}
-        <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between print:hidden">
+    <div 
+      className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+    >
+      <div 
+        className="relative bg-white w-full max-w-4xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-8"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Sticky Top Header Bar */}
+        <div className="sticky top-0 z-20 px-6 py-4 bg-slate-900 text-white flex items-center justify-between shadow-md print:hidden">
           <div className="flex items-center gap-2">
             <Award className="w-5 h-5 text-amber-400" />
             <span className="font-semibold text-sm">Official Academic Transcript & Report Card</span>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <button
               onClick={handlePrint}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-700 hover:bg-brand-600 text-white rounded-lg text-xs font-semibold shadow transition-colors"
@@ -98,9 +122,11 @@ export const ReportCardModal: React.FC<ReportCardModalProps> = ({
             </button>
             <button
               onClick={onClose}
-              className="p-1.5 text-slate-400 hover:text-white rounded-lg transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-rose-600 text-slate-200 hover:text-white rounded-lg text-xs font-semibold border border-slate-700 hover:border-rose-500 transition-colors"
+              title="Close modal (Esc)"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
+              <span>Close (Esc)</span>
             </button>
           </div>
         </div>
@@ -238,24 +264,52 @@ export const ReportCardModal: React.FC<ReportCardModalProps> = ({
           </div>
 
           {/* Signatures & Seal */}
-          <div className="mt-10 pt-6 border-t border-slate-200 grid grid-cols-3 gap-6 text-center text-xs">
+          <div className="mt-10 pt-6 border-t border-slate-200 grid grid-cols-2 sm:grid-cols-4 gap-4 text-center text-xs">
             <div>
-              <div className="h-10 border-b border-dashed border-slate-400 mx-auto w-36 mb-1"></div>
+              <div className="h-10 border-b border-dashed border-slate-400 mx-auto w-28 sm:w-36 mb-1"></div>
               <p className="font-bold text-slate-800">Class Teacher</p>
-              <p className="text-[10px] text-slate-400">Sir Ahmed Khan</p>
+              <p className="text-[10px] text-slate-500">Sir Ahmed Khan</p>
             </div>
             <div>
-              <div className="w-16 h-16 rounded-full border-2 border-brand-800 mx-auto flex items-center justify-center text-[9px] font-black uppercase text-brand-900 rotate-[-12deg] mb-1">
+              <div className="h-10 border-b border-dashed border-slate-400 mx-auto w-28 sm:w-36 mb-1"></div>
+              <p className="font-bold text-slate-800">Vice Principal</p>
+              <p className="text-[10px] text-slate-500">Hana Khan</p>
+            </div>
+            <div>
+              <div className="w-14 h-14 rounded-full border-2 border-brand-800 mx-auto flex items-center justify-center text-[8px] font-black uppercase text-brand-900 rotate-[-12deg] mb-1">
                 Official Seal
               </div>
               <p className="font-bold text-slate-800">Verified & Sealed</p>
               <p className="text-[10px] text-slate-400">Exam Controller</p>
             </div>
             <div>
-              <div className="h-10 border-b border-dashed border-slate-400 mx-auto w-36 mb-1"></div>
-              <p className="font-bold text-slate-800">Dr. Asim Farooqui</p>
-              <p className="text-[10px] text-slate-400">Principal, Bluebells Schooling System</p>
+              <div className="h-10 border-b border-dashed border-slate-400 mx-auto w-28 sm:w-36 mb-1"></div>
+              <p className="font-bold text-slate-800">Principal</p>
+              <p className="text-[10px] text-slate-500">Huma Arif</p>
             </div>
+          </div>
+        </div>
+
+        {/* Bottom Action Footer (hidden in print) */}
+        <div className="px-6 py-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 print:hidden">
+          <p className="text-xs text-slate-500">
+            Press <kbd className="px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 font-mono text-[10px]">Esc</kbd> or click outside to dismiss this transcript view.
+          </p>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handlePrint}
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-700 hover:bg-brand-600 text-white rounded-lg text-xs font-semibold shadow transition-colors"
+            >
+              <Printer className="w-4 h-4" />
+              <span>Print Transcript</span>
+            </button>
+            <button
+              onClick={onClose}
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-lg text-xs font-semibold transition-colors"
+            >
+              <X className="w-4 h-4" />
+              <span>Close</span>
+            </button>
           </div>
         </div>
       </div>

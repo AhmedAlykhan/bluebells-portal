@@ -38,7 +38,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   const personas = [
     { username: 'admin', label: 'Super Admin (Administrator)', role: 'ROLE_SUPER_ADMIN' },
-    { username: 'principal', label: 'Principal (Dr. Asim Farooqui)', role: 'ROLE_PRINCIPAL' },
+    { username: 'principal', label: 'Principal (Huma Arif)', role: 'ROLE_PRINCIPAL' },
     { username: 'teacher.ahmed', label: 'Teacher (Sir Ahmed - Math)', role: 'ROLE_TEACHER' },
     { username: 'teacher.fatima', label: 'Teacher (Miss Fatima - Physics)', role: 'ROLE_TEACHER' },
     { username: 'accountant', label: 'Accountant (Syed Tariq)', role: 'ROLE_ACCOUNTANT' },

@@ -30,7 +30,7 @@ The Bluebells School LMS & School Management Portal implements a defense-in-dept
 |---|---|---|
 | `ROLE_SUPER_ADMIN` | System Architect / Campus Director | Global campus oversight, school configuration, database backups, audit logs, and master user provisioning. |
 | `ROLE_SCHOOL_ADMIN` | Campus Registrar / Admissions Office | Operational campus management, admissions processing, student enrollment, and scheduling. |
-| `ROLE_PRINCIPAL` | Academic Principal (Dr. Asim Farooqui) | Faculty leadership, academic standards, exam approvals, transcript signing, and teacher allocations. |
+| `ROLE_PRINCIPAL` | Academic Principal (Huma Arif) | Faculty leadership, academic standards, exam approvals, transcript signing, and teacher allocations. |
 | `ROLE_TEACHER` | Subject Faculty (e.g., Sir Ahmed, Miss Fatima) | Classroom syllabus, attendance marking for assigned periods, homework assignments, and exam grading. |
 | `ROLE_ACCOUNTANT` | Chief Accountant (Syed Tariq) | Fee structures, monthly tuition challans, bank reconciliations, payment collection entries, and financial ledgers. |
 | `ROLE_PARENT` | Guardian (e.g., Mohammad Tariq Khan) | Real-time monitoring of enrolled children (attendance, fee challans, exam results, timetable). |

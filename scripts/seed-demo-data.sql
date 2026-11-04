@@ -8,7 +8,7 @@
 -- BCrypt Hash: $2a$12$48LaWIm/EuAioWEczLBisOlDflYK6P8G0qu7YCR2ta5xdE0Sl41wO
 INSERT INTO users (id, username, email, password_hash, full_name, phone_number, status) VALUES
 (1, 'admin', 'admin@bluebells.edu.pk', '$2a$12$48LaWIm/EuAioWEczLBisOlDflYK6P8G0qu7YCR2ta5xdE0Sl41wO', 'Bluebells Platform Administrator', '+92 316 9681932', 'ACTIVE'),
-(2, 'principal', 'principal@bluebells.edu.pk', '$2a$12$48LaWIm/EuAioWEczLBisOlDflYK6P8G0qu7YCR2ta5xdE0Sl41wO', 'Dr. Asim Farooqui', '+92 300 9876543', 'ACTIVE'),
+(2, 'principal', 'principal@bluebells.edu.pk', '$2a$12$48LaWIm/EuAioWEczLBisOlDflYK6P8G0qu7YCR2ta5xdE0Sl41wO', 'Huma Arif', '+92 300 9876543', 'ACTIVE'),
 (3, 'teacher.ahmed', 'ahmed.khan@bluebells.edu.pk', '$2a$12$48LaWIm/EuAioWEczLBisOlDflYK6P8G0qu7YCR2ta5xdE0Sl41wO', 'Sir Ahmed Khan', '+92 301 2345678', 'ACTIVE'),
 (4, 'teacher.fatima', 'fatima.shah@bluebells.edu.pk', '$2a$12$48LaWIm/EuAioWEczLBisOlDflYK6P8G0qu7YCR2ta5xdE0Sl41wO', 'Miss Fatima Shah', '+92 302 3456789', 'ACTIVE'),
 (5, 'accountant', 'tariq.accounts@bluebells.edu.pk', '$2a$12$48LaWIm/EuAioWEczLBisOlDflYK6P8G0qu7YCR2ta5xdE0Sl41wO', 'Syed Tariq Mahmood', '+92 303 4567890', 'ACTIVE'),
