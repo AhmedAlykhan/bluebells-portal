@@ -2,6 +2,28 @@
 
 All notable changes and deliverables for Bluebells Schooling System, Hyderabad, Sindh, Pakistan are documented here.
 
+## [1.1.0] — 2026-11-04 (Security Hardening, Live API Integration & DTO Type Safety)
+
+### Backend Enhancements:
+- **Financial Route Completeness**: Added `getAllInvoices(status, billingMonth)` and `getAllPayments()` in `FeeService.java` and exposed them via `@GetMapping("/invoices")` and `@GetMapping("/payments")` in `FeeController.java` with role authorization (`SUPER_ADMIN`, `SCHOOL_ADMIN`, `PRINCIPAL`, `ACCOUNTANT`).
+- **Strictly Typed Enrollment Payloads**: Created `EnrollStudentRequest.java` DTO with `@NotNull`, `@NotBlank`, and validation constraints, eliminating unchecked casts and raw `Map<String, Object>` payloads in `StudentController.enrollStudent`.
+- **Credential Rotation Validation**: Added password reuse detection in `AuthService.changePassword` to reject attempts to update a password to the user's current password.
+- **Account Lock Enforcement**: Hardened `JwtAuthenticationFilter` and `UserPrincipal` to immediately reject JWT requests from locked or disabled accounts.
+- **Formula Injection Defense & Export Access**: Added `ACCOUNTANT` role to CSV export endpoints in `ReportController.java` while enforcing OWASP/CWE-1236 prefix sanitization.
+- **N+1 Query Elimination**: Added `@EntityGraph` loading for student relationships in `StudentRepository.java`.
+
+### Frontend Enhancements:
+- **Live Data Synchronization**:
+  - `AccountantDashboard.tsx`: Connected real-time payment transactions via `GET /api/v1/finance/payments` with instant table refresh upon recording payments.
+  - `StudentDashboard.tsx`: Dynamically queries `GET /api/v1/students/me` to populate student profile details (admission number, roll number, class) dynamically.
+  - `ParentDashboard.tsx`: Dynamically queries `GET /api/v1/guardians/my-children` for multi-child profile switching.
+  - `ReportsPage`: Connected to live institutional KPIs via `GET /api/v1/reports/dashboard`.
+- **Sanitized CSV Report Exports**:
+  - Added dedicated export triggers in `ModulePages.tsx` for Students Roster (`/reports/students/export-csv`), Daily Attendance Log (`/reports/attendance/export-csv`), and Fee Ledger (`/reports/fees/export-csv`).
+- **Live Search & Dynamic Invoicing**:
+  - Implemented live student directory search with real-time backend query fetching in `StudentsPage`.
+  - Implemented dynamic invoice ledger loading in `FeesPage` based on authenticated user role.
+
 ## [1.0.0] — 2026-10-28 (Release Candidate)
 
 ### Block 0: Environment Inspection & Project Plan

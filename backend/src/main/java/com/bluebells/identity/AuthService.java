@@ -92,6 +92,10 @@ public class AuthService {
             throw new ApiException("Current password does not match", HttpStatus.BAD_REQUEST);
         }
 
+        if (passwordEncoder.matches(request.getNewPassword(), user.getPasswordHash())) {
+            throw new ApiException("New password must be different from current password", HttpStatus.BAD_REQUEST);
+        }
+
         user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
         log.info("Password changed successfully for user: {}", user.getUsername());

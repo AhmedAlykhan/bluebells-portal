@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   CreditCard, 
   TrendingUp, 
@@ -8,13 +8,59 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { RecordPaymentModal } from '../../components/modals/RecordPaymentModal';
+import { apiClient } from '../../api/client';
 import { Link } from 'react-router-dom';
+
+interface TransactionItem {
+  receiptNo: string;
+  student: string;
+  amount: string;
+  method: string;
+  date: string;
+  status: string;
+}
+
+const DEFAULT_TRANSACTIONS: TransactionItem[] = [
+  { receiptNo: 'REC-202610-091', student: 'Ali Khan (09-A-12)', amount: 'Rs. 8,500', method: 'Cash', date: '28 Oct 2026', status: 'COMPLETED' },
+  { receiptNo: 'REC-202610-090', student: 'Sara Khan (08-R-05)', amount: 'Rs. 7,500', method: 'Bank Alfalah', date: '28 Oct 2026', status: 'COMPLETED' },
+  { receiptNo: 'REC-202610-089', student: 'Shahid Afridi (09-A-02)', amount: 'Rs. 8,500', method: 'JazzCash', date: '27 Oct 2026', status: 'COMPLETED' },
+  { receiptNo: 'REC-202610-088', student: 'Bilal Hassan (09-B-01)', amount: 'Rs. 8,500', method: 'Cash', date: '27 Oct 2026', status: 'COMPLETED' },
+];
 
 export const AccountantDashboard: React.FC = () => {
   const { user } = useAuth();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [recentTransactions, setRecentTransactions] = useState<TransactionItem[]>(DEFAULT_TRANSACTIONS);
 
-  const accountantName = user?.fullName || 'Syed Tariq';
+  const loadPayments = useCallback(async () => {
+    try {
+      const res = await apiClient.get('/finance/payments');
+      if (res.data?.data && Array.isArray(res.data.data) && res.data.data.length > 0) {
+        interface RawPayment {
+          paymentReference: string;
+          studentName?: string;
+          amount: number;
+          paymentMethod: string;
+          paymentDate: string;
+        }
+        const mapped = res.data.data.slice(0, 8).map((p: RawPayment) => ({
+          receiptNo: p.paymentReference,
+          student: p.studentName || 'Enrolled Student',
+          amount: `Rs. ${Number(p.amount).toLocaleString()}`,
+          method: p.paymentMethod,
+          date: p.paymentDate,
+          status: 'COMPLETED'
+        }));
+        setRecentTransactions(mapped);
+      }
+    } catch {
+      // Keep existing default transactions on network error
+    }
+  }, []);
+
+  useEffect(() => {
+    loadPayments();
+  }, [loadPayments]);
 
   const stats = [
     { label: 'October Collection', value: 'Rs. 1,420,000', sub: '84% target reached', icon: CreditCard, color: 'text-purple-600 bg-purple-50' },
@@ -23,12 +69,7 @@ export const AccountantDashboard: React.FC = () => {
     { label: 'Today Collections', value: 'Rs. 42,500', sub: '5 receipts issued', icon: TrendingUp, color: 'text-emerald-600 bg-emerald-50' },
   ];
 
-  const recentTransactions = [
-    { receiptNo: 'REC-202610-091', student: 'Ali Khan (09-A-12)', amount: 'Rs. 8,500', method: 'Cash', date: '28 Oct 2026', status: 'COMPLETED' },
-    { receiptNo: 'REC-202610-090', student: 'Sara Khan (08-R-05)', amount: 'Rs. 7,500', method: 'Bank Alfalah', date: '28 Oct 2026', status: 'COMPLETED' },
-    { receiptNo: 'REC-202610-089', student: 'Shahid Afridi (09-A-02)', amount: 'Rs. 8,500', method: 'JazzCash', date: '27 Oct 2026', status: 'COMPLETED' },
-    { receiptNo: 'REC-202610-088', student: 'Bilal Hassan (09-B-01)', amount: 'Rs. 8,500', method: 'Cash', date: '27 Oct 2026', status: 'COMPLETED' },
-  ];
+  const accountantName = user?.fullName || 'Syed Tariq';
 
   return (
     <div className="space-y-6">
@@ -125,7 +166,7 @@ export const AccountantDashboard: React.FC = () => {
       <RecordPaymentModal
         isOpen={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
-        onSuccess={() => {}}
+        onSuccess={loadPayments}
       />
     </div>
   );

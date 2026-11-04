@@ -48,6 +48,16 @@ public class FeeController {
         return ResponseEntity.ok(ApiResponse.success(structures));
     }
 
+    @GetMapping("/invoices")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'ACCOUNTANT') or hasAuthority('FEES_MANAGE')")
+    @Operation(summary = "Get all fee invoices with optional status and month filtering")
+    public ResponseEntity<ApiResponse<List<FeeInvoiceDto>>> getAllInvoices(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String billingMonth) {
+        List<FeeInvoiceDto> invoices = feeService.getAllInvoices(status, billingMonth);
+        return ResponseEntity.ok(ApiResponse.success(invoices));
+    }
+
     @PostMapping("/invoices")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'ACCOUNTANT') or hasAuthority('FEES_MANAGE')")
     @Operation(summary = "Create an individual customized student invoice")
@@ -97,6 +107,14 @@ public class FeeController {
         authorizationService.checkFeeAccess(studentId, principal);
         List<FeeInvoiceDto> invoices = feeService.getInvoicesForStudent(studentId);
         return ResponseEntity.ok(ApiResponse.success(invoices));
+    }
+
+    @GetMapping("/payments")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'ACCOUNTANT') or hasAuthority('PAYMENTS_RECORD')")
+    @Operation(summary = "Get all recorded fee payments for finance office")
+    public ResponseEntity<ApiResponse<List<PaymentDto>>> getAllPayments() {
+        List<PaymentDto> payments = feeService.getAllPayments();
+        return ResponseEntity.ok(ApiResponse.success(payments));
     }
 
     @PostMapping("/payments")

@@ -14,6 +14,7 @@ import com.bluebells.students.Enrollment;
 import com.bluebells.students.EnrollmentRepository;
 import com.bluebells.students.Student;
 import com.bluebells.students.StudentRepository;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -400,6 +401,23 @@ public class FeeService {
     @Transactional(readOnly = true)
     public List<PaymentDto> getPaymentsForStudent(Long studentId) {
         return paymentRepository.findByStudentIdOrderByPaymentDateDesc(studentId).stream()
+                .map(PaymentDto::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<FeeInvoiceDto> getAllInvoices(String status, String billingMonth) {
+        List<FeeInvoice> invoices = invoiceRepository.findAll(Sort.by(Sort.Direction.DESC, "dueDate"));
+        return invoices.stream()
+                .filter(inv -> status == null || status.isBlank() || inv.getStatus().equalsIgnoreCase(status))
+                .filter(inv -> billingMonth == null || billingMonth.isBlank() || inv.getBillingMonth().equalsIgnoreCase(billingMonth))
+                .map(FeeInvoiceDto::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<PaymentDto> getAllPayments() {
+        return paymentRepository.findAll(Sort.by(Sort.Direction.DESC, "paymentDate")).stream()
                 .map(PaymentDto::fromEntity)
                 .collect(Collectors.toList());
     }

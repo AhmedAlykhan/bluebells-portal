@@ -82,12 +82,8 @@ public class StudentController {
     @Operation(summary = "Enroll an existing student into a new academic session and section")
     public ResponseEntity<ApiResponse<StudentDto>> enrollStudent(
             @PathVariable Long id,
-            @RequestBody Map<String, Object> body) {
-        Long sectionId = ((Number) body.get("sectionId")).longValue();
-        Long sessionId = body.get("sessionId") != null ? ((Number) body.get("sessionId")).longValue() : null;
-        String rollNumber = (String) body.get("rollNumber");
-
-        StudentDto enrolled = studentService.enrollStudent(id, sectionId, sessionId, rollNumber);
+            @Valid @RequestBody com.bluebells.students.dto.EnrollStudentRequest request) {
+        StudentDto enrolled = studentService.enrollStudent(id, request.getSectionId(), request.getSessionId(), request.getRollNumber());
         return ResponseEntity.ok(ApiResponse.success("Student enrolled successfully", enrolled));
     }
 }

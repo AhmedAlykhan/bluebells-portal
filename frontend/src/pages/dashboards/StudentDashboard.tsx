@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   CheckCircle2, 
   CreditCard, 
@@ -10,15 +10,46 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { ReportCardModal } from '../../components/modals/ReportCardModal';
+import { apiClient } from '../../api/client';
 import { Link } from 'react-router-dom';
 
 export const StudentDashboard: React.FC = () => {
   const { user } = useAuth();
   const [showReportCard, setShowReportCard] = useState(false);
+  const [studentProfile, setStudentProfile] = useState<{
+    fullName?: string;
+    className?: string;
+    rollNumber?: string;
+  }>({
+    fullName: user?.fullName || 'Ali Khan',
+    className: 'Class 9-A (Matriculation Science)',
+    rollNumber: '09-A-12',
+  });
 
-  const studentName = user?.fullName || 'Ali Khan';
-  const rollNumber = '09-A-12';
-  const className = 'Class 9-A (Matriculation Science)';
+  useEffect(() => {
+    async function fetchProfile() {
+      try {
+        const res = await apiClient.get('/students/me');
+        if (res.data?.data) {
+          const d = res.data.data;
+          setStudentProfile({
+            fullName: d.fullName || user?.fullName || 'Ali Khan',
+            className: d.activeClassName 
+              ? `${d.activeClassName}${d.activeSectionName ? ' - ' + d.activeSectionName : ''}` 
+              : 'Class 9-A (Matriculation Science)',
+            rollNumber: d.rollNumber || '01',
+          });
+        }
+      } catch {
+        // Fallback to initial values
+      }
+    }
+    fetchProfile();
+  }, [user]);
+
+  const studentName = studentProfile.fullName || user?.fullName || 'Ali Khan';
+  const rollNumber = studentProfile.rollNumber || '01';
+  const className = studentProfile.className || 'Class 9-A (Matriculation Science)';
 
   const stats = [
     { label: 'My Attendance Rate', value: '96.2%', sub: '50 of 52 days present', icon: CheckCircle2, color: 'text-emerald-600 bg-emerald-50' },

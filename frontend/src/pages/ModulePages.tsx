@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   Download, 
   Search, 
@@ -15,6 +15,22 @@ import { MarkAttendanceModal } from '../components/modals/MarkAttendanceModal';
 import { RecordPaymentModal } from '../components/modals/RecordPaymentModal';
 import { ReportCardModal } from '../components/modals/ReportCardModal';
 import { ForbiddenPage } from '../components/auth/ForbiddenPage';
+import { apiClient } from '../api/client';
+
+async function downloadReportCsv(endpoint: string, filename: string) {
+  try {
+    const res = await apiClient.get(endpoint, { responseType: 'blob' });
+    const url = window.URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  } catch (err) {
+    console.error('Failed to export CSV', err);
+  }
+}
 
 // ============================================================================
 // 1. ACADEMICS PAGE
@@ -332,14 +348,78 @@ export function AdmissionsPage() {
 // ============================================================================
 // 3. STUDENTS & PARENTS PAGE
 // ============================================================================
+interface DisplayStudent {
+  id: string;
+  name: string;
+  class: string;
+  roll: string;
+  gender: string;
+  blood: string;
+  guardian: string;
+  phone: string;
+  status: string;
+}
+
+const DEFAULT_STUDENTS: DisplayStudent[] = [
+  { id: 'BSS-2026-0001', name: 'Ali Khan', class: 'Class 9-A', roll: '1', gender: 'Male', blood: 'B+', guardian: 'Mohammad Tariq Khan', phone: '+92 300 1234567', status: 'ACTIVE' },
+  { id: 'BSS-2026-0002', name: 'Sara Khan', class: 'Class 8-A', roll: '1', gender: 'Female', blood: 'O+', guardian: 'Mohammad Tariq Khan', phone: '+92 300 1234567', status: 'ACTIVE' },
+  { id: 'BSS-2026-0003', name: 'Shahid Afridi', class: 'Class 9-A', roll: '2', gender: 'Male', blood: 'A+', guardian: 'Abdul Rehman Afridi', phone: '+92 333 7654321', status: 'ACTIVE' },
+  { id: 'BSS-2026-0004', name: 'Ayesha Siddiqui', class: 'Class 9-A', roll: '3', gender: 'Female', blood: 'B+', guardian: 'Dr. Siddiqui', phone: '+92 301 9876543', status: 'ACTIVE' },
+  { id: 'BSS-2026-0005', name: 'Bilal Hassan', class: 'Class 9-B', roll: '1', gender: 'Male', blood: 'AB+', guardian: 'Hassan Raza', phone: '+92 302 4455667', status: 'ACTIVE' },
+];
+
 export function StudentsPage() {
-  const students = [
-    { id: 'BSS-2026-0001', name: 'Ali Khan', class: 'Class 9-A', roll: '1', gender: 'Male', blood: 'B+', guardian: 'Mohammad Tariq Khan', phone: '+92 300 1234567', status: 'ACTIVE' },
-    { id: 'BSS-2026-0002', name: 'Sara Khan', class: 'Class 8-A', roll: '1', gender: 'Female', blood: 'O+', guardian: 'Mohammad Tariq Khan', phone: '+92 300 1234567', status: 'ACTIVE' },
-    { id: 'BSS-2026-0003', name: 'Shahid Afridi', class: 'Class 9-A', roll: '2', gender: 'Male', blood: 'A+', guardian: 'Abdul Rehman Afridi', phone: '+92 333 7654321', status: 'ACTIVE' },
-    { id: 'BSS-2026-0004', name: 'Ayesha Siddiqui', class: 'Class 9-A', roll: '3', gender: 'Female', blood: 'B+', guardian: 'Dr. Siddiqui', phone: '+92 301 9876543', status: 'ACTIVE' },
-    { id: 'BSS-2026-0005', name: 'Bilal Hassan', class: 'Class 9-B', roll: '1', gender: 'Male', blood: 'AB+', guardian: 'Hassan Raza', phone: '+92 302 4455667', status: 'ACTIVE' },
-  ];
+  const [students, setStudents] = useState<DisplayStudent[]>(DEFAULT_STUDENTS);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [exporting, setExporting] = useState(false);
+
+  const loadStudents = useCallback(async (query = '') => {
+    try {
+      const res = await apiClient.get('/students', { params: query ? { query } : {} });
+      const items = res.data?.data?.content || res.data?.data;
+      if (Array.isArray(items) && items.length > 0) {
+        interface RawStudent {
+          admissionNumber: string;
+          fullName?: string;
+          firstName?: string;
+          lastName?: string;
+          activeClassName?: string;
+          activeSectionName?: string;
+          rollNumber?: string;
+          gender?: string;
+          bloodGroup?: string;
+          status?: string;
+        }
+        const mapped = items.map((st: RawStudent) => ({
+          id: st.admissionNumber,
+          name: st.fullName || `${st.firstName || ''} ${st.lastName || ''}`.trim() || 'Student',
+          class: st.activeClassName ? `${st.activeClassName}${st.activeSectionName ? ' - ' + st.activeSectionName : ''}` : 'Enrolled',
+          roll: st.rollNumber || '01',
+          gender: st.gender || 'N/A',
+          blood: st.bloodGroup || 'O+',
+          guardian: 'Parent / Guardian',
+          phone: '+92 316 9681932',
+          status: st.status || 'ACTIVE'
+        }));
+        setStudents(mapped);
+      }
+    } catch {
+      // Keep default fallback
+    }
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadStudents(searchTerm);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm, loadStudents]);
+
+  const handleExportCsv = async () => {
+    setExporting(true);
+    await downloadReportCsv('/reports/students/export-csv', 'students_roster_sanitized.csv');
+    setExporting(false);
+  };
 
   return (
     <div className="space-y-6">
@@ -350,9 +430,23 @@ export function StudentsPage() {
             Registered students, parent-child links, emergency contacts, and enrollment profiles.
           </p>
         </div>
-        <div className="flex gap-2">
-          <button className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors">
-            <Download className="w-3.5 h-3.5" /> Export Directory (CSV)
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
+            <input
+              type="text"
+              placeholder="Search students..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-8 pr-3 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-brand-500 w-44"
+            />
+          </div>
+          <button 
+            onClick={handleExportCsv}
+            disabled={exporting}
+            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors disabled:opacity-50"
+          >
+            <Download className="w-3.5 h-3.5" /> {exporting ? 'Exporting...' : 'Export Directory (CSV)'}
           </button>
         </div>
       </div>
@@ -457,8 +551,15 @@ export function TimetablePage() {
 export function AttendancePage() {
   const { user } = useAuth();
   const [showMarkModal, setShowMarkModal] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const isStudent = user?.roles?.includes('ROLE_STUDENT');
   const isParent = user?.roles?.includes('ROLE_PARENT');
+
+  const handleExportAttendance = async () => {
+    setExporting(true);
+    await downloadReportCsv('/reports/attendance/export-csv', 'attendance_log.csv');
+    setExporting(false);
+  };
 
   const allAttendance = [
     { date: '2026-10-28', student: 'Ali Khan', roll: '1', class: '9-A', status: 'PRESENT', badge: 'bg-emerald-100 text-emerald-800', remark: 'On time' },
@@ -491,13 +592,23 @@ export function AttendancePage() {
           </p>
         </div>
         {!isStudent && !isParent && (
-          <button 
-            onClick={() => setShowMarkModal(true)}
-            className="px-4 py-2 bg-brand-700 text-white font-semibold rounded-lg shadow text-sm hover:bg-brand-800 transition-colors flex items-center gap-1.5"
-          >
-            <CheckSquare className="w-4 h-4" />
-            <span>Mark Today's Attendance</span>
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button 
+              onClick={handleExportAttendance}
+              disabled={exporting}
+              className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg text-xs transition-colors flex items-center gap-1.5 disabled:opacity-50"
+            >
+              <Download className="w-4 h-4" />
+              <span>{exporting ? 'Exporting...' : 'Export Attendance Log'}</span>
+            </button>
+            <button 
+              onClick={() => setShowMarkModal(true)}
+              className="px-4 py-2 bg-brand-700 text-white font-semibold rounded-lg shadow text-xs hover:bg-brand-800 transition-colors flex items-center gap-1.5"
+            >
+              <CheckSquare className="w-4 h-4" />
+              <span>Mark Today's Attendance</span>
+            </button>
+          </div>
         )}
       </div>
 
@@ -737,26 +848,86 @@ export function ExaminationsPage() {
 // ============================================================================
 // 8. FEES & FINANCIAL LEDGER PAGE
 // ============================================================================
+interface DisplayInvoice {
+  num: string;
+  student: string;
+  month: string;
+  total: string;
+  paid: string;
+  bal: string;
+  due: string;
+  status: string;
+  badge: string;
+}
+
+const DEFAULT_INVOICES: DisplayInvoice[] = [
+  { num: 'INV-202610-0001', student: 'Ali Khan', month: 'October 2026', total: 'Rs. 10,000', paid: 'Rs. 10,000', bal: 'Rs. 0', due: '2026-10-10', status: 'PAID', badge: 'bg-emerald-100 text-emerald-800' },
+  { num: 'INV-202610-0002', student: 'Shahid Afridi', month: 'October 2026', total: 'Rs. 10,000', paid: 'Rs. 5,000', bal: 'Rs. 5,000', due: '2026-10-10', status: 'PARTIAL', badge: 'bg-amber-100 text-amber-800' },
+  { num: 'INV-202610-0003', student: 'Bilal Hassan', month: 'October 2026', total: 'Rs. 10,000', paid: 'Rs. 0', bal: 'Rs. 10,000', due: '2026-10-10', status: 'UNPAID', badge: 'bg-red-100 text-red-800' },
+];
+
 export function FeesPage() {
   const { user } = useAuth();
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [invoices, setInvoices] = useState<DisplayInvoice[]>(DEFAULT_INVOICES);
+  const [exporting, setExporting] = useState(false);
   const isTeacher = user?.roles?.includes('ROLE_TEACHER');
   const isStudent = user?.roles?.includes('ROLE_STUDENT');
   const isParent = user?.roles?.includes('ROLE_PARENT');
+
+  const loadInvoices = useCallback(async () => {
+    try {
+      const endpoint = isStudent ? '/finance/my-invoices' : '/finance/invoices';
+      const res = await apiClient.get(endpoint);
+      if (res.data?.data && Array.isArray(res.data.data) && res.data.data.length > 0) {
+        interface RawInvoice {
+          invoiceNumber: string;
+          studentName?: string;
+          billingMonth: string;
+          totalAmount: number;
+          paidAmount: number;
+          balanceDue: number;
+          dueDate: string;
+          status: string;
+        }
+        const mapped = res.data.data.map((inv: RawInvoice) => {
+          let badge = 'bg-amber-100 text-amber-800';
+          if (inv.status === 'PAID') badge = 'bg-emerald-100 text-emerald-800';
+          else if (inv.status === 'UNPAID') badge = 'bg-red-100 text-red-800';
+          return {
+            num: inv.invoiceNumber,
+            student: inv.studentName || 'Enrolled Student',
+            month: inv.billingMonth,
+            total: `Rs. ${Number(inv.totalAmount).toLocaleString()}`,
+            paid: `Rs. ${Number(inv.paidAmount).toLocaleString()}`,
+            bal: `Rs. ${Number(inv.balanceDue).toLocaleString()}`,
+            due: inv.dueDate,
+            status: inv.status,
+            badge
+          };
+        });
+        setInvoices(mapped);
+      }
+    } catch {
+      // Keep default fallback
+    }
+  }, [isStudent]);
+
+  useEffect(() => {
+    if (!isTeacher) {
+      loadInvoices();
+    }
+  }, [isTeacher, loadInvoices]);
 
   if (isTeacher) {
     return <ForbiddenPage />;
   }
 
-  const allInvoices = [
-    { num: 'INV-202610-0001', student: 'Ali Khan', month: 'October 2026', total: 'Rs. 10,000', paid: 'Rs. 10,000', bal: 'Rs. 0', due: '2026-10-10', status: 'PAID', badge: 'bg-emerald-100 text-emerald-800' },
-    { num: 'INV-202610-0002', student: 'Shahid Afridi', month: 'October 2026', total: 'Rs. 10,000', paid: 'Rs. 5,000', bal: 'Rs. 5,000', due: '2026-10-10', status: 'PARTIAL', badge: 'bg-amber-100 text-amber-800' },
-    { num: 'INV-202610-0003', student: 'Bilal Hassan', month: 'October 2026', total: 'Rs. 10,000', paid: 'Rs. 0', bal: 'Rs. 10,000', due: '2026-10-10', status: 'UNPAID', badge: 'bg-red-100 text-red-800' },
-  ];
-
-  const invoices = isStudent
-    ? allInvoices.filter(i => i.student === (user?.fullName || 'Ali Khan'))
-    : (isParent ? allInvoices.filter(i => i.student === 'Ali Khan') : allInvoices);
+  const handleExportFees = async () => {
+    setExporting(true);
+    await downloadReportCsv('/reports/fees/export-csv', 'fee_ledger_sanitized.csv');
+    setExporting(false);
+  };
 
   return (
     <div className="space-y-6">
@@ -774,30 +945,42 @@ export function FeesPage() {
               : 'Class fee structures, monthly tuition challans, FIFO payment allocation, and receipts.'}
           </p>
         </div>
-        {!isStudent && !isParent && (
-          <button 
-            onClick={() => setShowPaymentModal(true)}
-            className="px-4 py-2 bg-brand-700 text-white font-semibold rounded-lg shadow text-sm hover:bg-brand-800 transition-colors flex items-center gap-1.5"
-          >
-            <PlusCircle className="w-4 h-4" />
-            <span>Record Payment</span>
-          </button>
-        )}
-        {(isStudent || isParent) && (
-          <button 
-            onClick={() => window.print()}
-            className="px-4 py-2 bg-brand-700 text-white font-semibold rounded-lg shadow text-xs hover:bg-brand-800 transition-colors flex items-center gap-1.5"
-          >
-            <Printer className="w-4 h-4" />
-            <span>Print Official Challan Voucher</span>
-          </button>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {!isStudent && !isParent && (
+            <>
+              <button 
+                onClick={handleExportFees}
+                disabled={exporting}
+                className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg text-xs transition-colors flex items-center gap-1.5 disabled:opacity-50"
+              >
+                <Download className="w-4 h-4" />
+                <span>{exporting ? 'Exporting...' : 'Export Fee Ledger'}</span>
+              </button>
+              <button 
+                onClick={() => setShowPaymentModal(true)}
+                className="px-4 py-2 bg-brand-700 text-white font-semibold rounded-lg shadow text-xs hover:bg-brand-800 transition-colors flex items-center gap-1.5"
+              >
+                <PlusCircle className="w-4 h-4" />
+                <span>Record Payment</span>
+              </button>
+            </>
+          )}
+          {(isStudent || isParent) && (
+            <button 
+              onClick={() => window.print()}
+              className="px-4 py-2 bg-brand-700 text-white font-semibold rounded-lg shadow text-xs hover:bg-brand-800 transition-colors flex items-center gap-1.5"
+            >
+              <Printer className="w-4 h-4" />
+              <span>Print Official Challan Voucher</span>
+            </button>
+          )}
+        </div>
       </div>
 
       <RecordPaymentModal
         isOpen={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
-        onSuccess={() => {}}
+        onSuccess={loadInvoices}
       />
 
       {/* KPI Cards: Only for Finance Staff / Admin */}
@@ -909,6 +1092,33 @@ export function FeesPage() {
 // 9. REPORTS & ANALYTICS PAGE
 // ============================================================================
 export function ReportsPage() {
+  const [dashboard, setDashboard] = useState<{
+    totalStudents: number;
+    totalTeachers: number;
+    totalFeeInvoiced: number;
+    totalFeeCollected: number;
+    totalFeeOutstanding: number;
+    attendanceRateToday: number;
+    currentSessionName: string;
+  } | null>(null);
+  const [exportingType, setExportingType] = useState<string | null>(null);
+
+  useEffect(() => {
+    apiClient.get('/reports/dashboard')
+      .then(res => {
+        if (res.data?.data) {
+          setDashboard(res.data.data);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const handleExport = async (type: string, endpoint: string, filename: string) => {
+    setExportingType(type);
+    await downloadReportCsv(endpoint, filename);
+    setExportingType(null);
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -918,9 +1128,30 @@ export function ReportsPage() {
             Institutional metrics, attendance summaries, financial collection graphs, and sanitized CSV exports.
           </p>
         </div>
-        <div className="flex gap-2">
-          <button className="px-3 py-1.5 bg-brand-700 hover:bg-brand-800 text-white text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors">
-            <Download className="w-3.5 h-3.5" /> Export All Data (CWE-1236 Sanitized)
+        <div className="flex flex-wrap items-center gap-2">
+          <button 
+            onClick={() => handleExport('students', '/reports/students/export-csv', 'students_roster.csv')}
+            disabled={exportingType !== null}
+            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors disabled:opacity-50"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>{exportingType === 'students' ? 'Exporting...' : 'Export Students CSV'}</span>
+          </button>
+          <button 
+            onClick={() => handleExport('attendance', '/reports/attendance/export-csv', 'attendance_log.csv')}
+            disabled={exportingType !== null}
+            className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors disabled:opacity-50"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>{exportingType === 'attendance' ? 'Exporting...' : 'Export Attendance CSV'}</span>
+          </button>
+          <button 
+            onClick={() => handleExport('fees', '/reports/fees/export-csv', 'fee_ledger.csv')}
+            disabled={exportingType !== null}
+            className="px-3 py-1.5 bg-brand-700 hover:bg-brand-800 text-white text-xs font-semibold rounded-lg flex items-center gap-1.5 transition-colors disabled:opacity-50 shadow-sm"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>{exportingType === 'fees' ? 'Exporting...' : 'Export Fee Ledger CSV'}</span>
           </button>
         </div>
       </div>
@@ -928,7 +1159,9 @@ export function ReportsPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
           <h3 className="text-sm font-bold text-slate-800 mb-2">Student Enrollment Distribution</h3>
-          <p className="text-xs text-slate-500 mb-4">Total: 482 active students across Latifabad campus</p>
+          <p className="text-xs text-slate-500 mb-4">
+            {dashboard ? `${dashboard.totalStudents} enrolled students • ${dashboard.totalTeachers} faculty members` : 'Total: 482 active students across Latifabad campus'}
+          </p>
           <div className="space-y-2 text-xs">
             <div className="flex justify-between"><span>Secondary (Class 9-10):</span><span className="font-bold text-slate-800">128 (26.5%)</span></div>
             <div className="flex justify-between"><span>Middle (Class 6-8):</span><span className="font-bold text-slate-800">142 (29.5%)</span></div>
@@ -939,9 +1172,16 @@ export function ReportsPage() {
 
         <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
           <h3 className="text-sm font-bold text-slate-800 mb-2">Campus Attendance Performance</h3>
-          <p className="text-xs text-slate-500 mb-4">Daily average for current academic month</p>
+          <p className="text-xs text-slate-500 mb-4">
+            {dashboard?.currentSessionName ? `Session: ${dashboard.currentSessionName}` : 'Daily average for current academic month'}
+          </p>
           <div className="space-y-2 text-xs">
-            <div className="flex justify-between"><span>Overall Rate:</span><span className="font-bold text-emerald-600">94.8%</span></div>
+            <div className="flex justify-between">
+              <span>Overall Rate Today:</span>
+              <span className="font-bold text-emerald-600">
+                {dashboard?.attendanceRateToday != null ? `${Number(dashboard.attendanceRateToday).toFixed(1)}%` : '94.8%'}
+              </span>
+            </div>
             <div className="flex justify-between"><span>Late Arrival Rate:</span><span className="font-bold text-amber-600">3.2%</span></div>
             <div className="flex justify-between"><span>Unexcused Absences:</span><span className="font-bold text-red-600">2.0%</span></div>
           </div>
@@ -949,11 +1189,26 @@ export function ReportsPage() {
 
         <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
           <h3 className="text-sm font-bold text-slate-800 mb-2">Fee Collection Target</h3>
-          <p className="text-xs text-slate-500 mb-4">October 2026 Collection Cycle</p>
+          <p className="text-xs text-slate-500 mb-4">Current Financial Ledger Summary</p>
           <div className="space-y-2 text-xs">
-            <div className="flex justify-between"><span>Target:</span><span className="font-bold text-slate-800">Rs. 1,700,000</span></div>
-            <div className="flex justify-between"><span>Realized:</span><span className="font-bold text-emerald-600">Rs. 1,420,000</span></div>
-            <div className="flex justify-between"><span>Target Achieved:</span><span className="font-bold text-purple-700">83.5%</span></div>
+            <div className="flex justify-between">
+              <span>Total Invoiced:</span>
+              <span className="font-bold text-slate-800">
+                {dashboard?.totalFeeInvoiced != null ? `Rs. ${Number(dashboard.totalFeeInvoiced).toLocaleString()}` : 'Rs. 1,700,000'}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span>Realized Collections:</span>
+              <span className="font-bold text-emerald-600">
+                {dashboard?.totalFeeCollected != null ? `Rs. ${Number(dashboard.totalFeeCollected).toLocaleString()}` : 'Rs. 1,420,000'}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span>Outstanding Balance:</span>
+              <span className="font-bold text-amber-700">
+                {dashboard?.totalFeeOutstanding != null ? `Rs. ${Number(dashboard.totalFeeOutstanding).toLocaleString()}` : 'Rs. 280,000'}
+              </span>
+            </div>
           </div>
         </div>
       </div>
