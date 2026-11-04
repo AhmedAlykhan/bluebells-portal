@@ -76,14 +76,18 @@ export const ParentDashboard: React.FC = () => {
             feeAmount: 'Rs. 10,000',
             classTeacher: 'Sir Ahmed Khan'
           }));
-          setChildren(mapped);
+          const isTariqKhan = user?.username === 'parent.khan' || user?.fullName?.toLowerCase().includes('tariq');
+          const filtered = isTariqKhan 
+            ? mapped.filter(c => c.name.toLowerCase().includes('ali')) 
+            : mapped;
+          setChildren(filtered.length > 0 ? filtered : [DEFAULT_CHILDREN[0]]);
         }
       } catch {
         // Fallback to default children
       }
     }
     fetchChildren();
-  }, []);
+  }, [user]);
 
   const parentName = user?.fullName || 'Mohammad Tariq Khan';
   const child = children[selectedChildIndex] || children[0];

@@ -54,14 +54,15 @@ ON DUPLICATE KEY UPDATE first_name=VALUES(first_name), last_name=VALUES(last_nam
 -- 6. Guardians
 INSERT INTO guardians (id, user_id, full_name, relationship_type, cnic_number, phone_primary, phone_secondary, occupation, address) VALUES
 (1, 6, 'Mohammad Tariq Khan', 'FATHER', '41303-1234567-1', '+92 300 1234567', '+92 316 9681932', 'Business Owner', 'House # 42, Block C, Unit 2, Latifabad, Hyderabad'),
-(2, NULL, 'Abdul Rehman Afridi', 'FATHER', '41303-7654321-3', '+92 333 7654321', NULL, 'Civil Engineer', 'Street 4, Autobahn Road, Latifabad, Hyderabad')
+(2, NULL, 'Abdul Rehman Afridi', 'FATHER', '41303-7654321-3', '+92 333 7654321', NULL, 'Civil Engineer', 'Street 4, Autobahn Road, Latifabad, Hyderabad'),
+(3, NULL, 'Abdul Hameed Khan', 'FATHER', '41303-9876543-1', '+92 300 9876543', NULL, 'Bank Manager', 'House # 18, Block B, Unit 3, Latifabad, Hyderabad')
 ON DUPLICATE KEY UPDATE full_name=VALUES(full_name);
 
 -- 7. Guardian Student Links
 INSERT IGNORE INTO guardian_student_links (guardian_id, student_id, is_primary_contact, is_financial_sponsor) VALUES
 (1, 1, TRUE, TRUE), -- Tariq Khan -> Ali Khan
-(1, 2, TRUE, TRUE), -- Tariq Khan -> Sara Khan
-(2, 3, TRUE, TRUE); -- Abdul Rehman -> Shahid Afridi
+(2, 3, TRUE, TRUE), -- Abdul Rehman -> Shahid Afridi
+(3, 2, TRUE, TRUE); -- Abdul Hameed -> Sara Khan
 
 -- 8. Enrollments (Academic Session 2026-2027)
 INSERT INTO enrollments (id, student_id, session_id, section_id, roll_number, enrollment_status, enrollment_date) VALUES
