@@ -9,6 +9,8 @@ import java.time.Instant;
 
 public class CreateAssignmentRequest {
 
+    private Long moduleId;
+
     @NotBlank(message = "Assignment title is required")
     private String title;
 
@@ -20,12 +22,27 @@ public class CreateAssignmentRequest {
     @DecimalMax(value = "1000.00", message = "Max marks cannot exceed 1000.00")
     private BigDecimal maxMarks = new BigDecimal("100.00");
 
+    @DecimalMin(value = "0.00", message = "Passing marks cannot be negative")
+    private BigDecimal passingMarks = new BigDecimal("40.00");
+
     @NotNull(message = "Due date is required")
     private Instant dueDate;
 
     private boolean allowLateSubmission = false;
+    private String allowedFormats = "PDF,IMAGES,DOCX";
+    private String attachmentUrl;
+    private String attachmentName;
+    private Long attachmentSizeBytes;
 
     public CreateAssignmentRequest() {
+    }
+
+    public Long getModuleId() {
+        return moduleId;
+    }
+
+    public void setModuleId(Long moduleId) {
+        this.moduleId = moduleId;
     }
 
     public String getTitle() {
@@ -52,6 +69,14 @@ public class CreateAssignmentRequest {
         this.maxMarks = maxMarks;
     }
 
+    public BigDecimal getPassingMarks() {
+        return passingMarks;
+    }
+
+    public void setPassingMarks(BigDecimal passingMarks) {
+        this.passingMarks = passingMarks;
+    }
+
     public Instant getDueDate() {
         return dueDate;
     }
@@ -66,5 +91,37 @@ public class CreateAssignmentRequest {
 
     public void setAllowLateSubmission(boolean allowLateSubmission) {
         this.allowLateSubmission = allowLateSubmission;
+    }
+
+    public String getAllowedFormats() {
+        return allowedFormats;
+    }
+
+    public void setAllowedFormats(String allowedFormats) {
+        this.allowedFormats = allowedFormats;
+    }
+
+    public String getAttachmentUrl() {
+        return attachmentUrl;
+    }
+
+    public void setAttachmentUrl(String attachmentUrl) {
+        this.attachmentUrl = attachmentUrl;
+    }
+
+    public String getAttachmentName() {
+        return attachmentName;
+    }
+
+    public void setAttachmentName(String attachmentName) {
+        this.attachmentName = attachmentName;
+    }
+
+    public Long getAttachmentSizeBytes() {
+        return attachmentSizeBytes;
+    }
+
+    public void setAttachmentSizeBytes(Long attachmentSizeBytes) {
+        this.attachmentSizeBytes = attachmentSizeBytes;
     }
 }

@@ -5,6 +5,8 @@ import com.bluebells.students.Student;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "assignment_submissions", uniqueConstraints = {
@@ -29,6 +31,10 @@ public class AssignmentSubmission {
 
     @Column(name = "file_url", length = 255)
     private String fileUrl;
+
+    @OneToMany(mappedBy = "submission", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("uploadOrder ASC")
+    private List<SubmissionFile> submissionFiles = new ArrayList<>();
 
     @Column(name = "submitted_at", nullable = false)
     private Instant submittedAt = Instant.now();
@@ -69,6 +75,8 @@ public class AssignmentSubmission {
         this.late = late;
         this.submittedAt = Instant.now();
         this.status = "SUBMITTED";
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
     }
 
     public Long getId() {
@@ -109,6 +117,19 @@ public class AssignmentSubmission {
 
     public void setFileUrl(String fileUrl) {
         this.fileUrl = fileUrl;
+    }
+
+    public List<SubmissionFile> getSubmissionFiles() {
+        return submissionFiles;
+    }
+
+    public void setSubmissionFiles(List<SubmissionFile> submissionFiles) {
+        this.submissionFiles = submissionFiles;
+    }
+
+    public void addSubmissionFile(SubmissionFile file) {
+        this.submissionFiles.add(file);
+        file.setSubmission(this);
     }
 
     public Instant getSubmittedAt() {

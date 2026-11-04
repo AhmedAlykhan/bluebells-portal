@@ -106,11 +106,11 @@ export function App() {
           } 
         />
 
-        {/* LMS & Coursework: Academic staff, teachers, and enrolled students */}
+        {/* LMS & Coursework: Academic staff, teachers, students, and parents */}
         <Route 
           path="lms" 
           element={
-            <ProtectedRoute allowedRoles={['ROLE_SUPER_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_TEACHER', 'ROLE_STUDENT']}>
+            <ProtectedRoute allowedRoles={['ROLE_SUPER_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_TEACHER', 'ROLE_STUDENT', 'ROLE_PARENT']}>
               <LmsPage />
             </ProtectedRoute>
           } 

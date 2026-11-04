@@ -9,12 +9,22 @@ public class AssignmentDto {
     private Long id;
     private Long courseId;
     private String courseTitle;
+    private Long moduleId;
+    private String moduleTitle;
     private String title;
     private String instructions;
     private BigDecimal maxMarks;
+    private BigDecimal passingMarks;
     private Instant dueDate;
     private boolean allowLateSubmission;
+    private String allowedFormats;
+    private String attachmentUrl;
+    private String attachmentName;
+    private Long attachmentSizeBytes;
     private String status;
+    private int submissionCount;
+    private int gradedCount;
+    private AssignmentSubmissionDto studentSubmission;
 
     public AssignmentDto() {
     }
@@ -27,12 +37,29 @@ public class AssignmentDto {
             dto.setCourseId(entity.getCourse().getId());
             dto.setCourseTitle(entity.getCourse().getTitle());
         }
+        if (entity.getModule() != null) {
+            dto.setModuleId(entity.getModule().getId());
+            dto.setModuleTitle(entity.getModule().getTitle());
+        }
         dto.setTitle(entity.getTitle());
         dto.setInstructions(entity.getInstructions());
         dto.setMaxMarks(entity.getMaxMarks());
+        dto.setPassingMarks(entity.getPassingMarks());
         dto.setDueDate(entity.getDueDate());
         dto.setAllowLateSubmission(entity.isAllowLateSubmission());
+        dto.setAllowedFormats(entity.getAllowedFormats());
+        dto.setAttachmentUrl(entity.getAttachmentUrl());
+        dto.setAttachmentName(entity.getAttachmentName());
+        dto.setAttachmentSizeBytes(entity.getAttachmentSizeBytes());
         dto.setStatus(entity.getStatus());
+
+        if (entity.getSubmissions() != null) {
+            dto.setSubmissionCount(entity.getSubmissions().size());
+            dto.setGradedCount((int) entity.getSubmissions().stream()
+                    .filter(s -> "GRADED".equalsIgnoreCase(s.getStatus()))
+                    .count());
+        }
+
         return dto;
     }
 
@@ -60,6 +87,22 @@ public class AssignmentDto {
         this.courseTitle = courseTitle;
     }
 
+    public Long getModuleId() {
+        return moduleId;
+    }
+
+    public void setModuleId(Long moduleId) {
+        this.moduleId = moduleId;
+    }
+
+    public String getModuleTitle() {
+        return moduleTitle;
+    }
+
+    public void setModuleTitle(String moduleTitle) {
+        this.moduleTitle = moduleTitle;
+    }
+
     public String getTitle() {
         return title;
     }
@@ -84,6 +127,14 @@ public class AssignmentDto {
         this.maxMarks = maxMarks;
     }
 
+    public BigDecimal getPassingMarks() {
+        return passingMarks;
+    }
+
+    public void setPassingMarks(BigDecimal passingMarks) {
+        this.passingMarks = passingMarks;
+    }
+
     public Instant getDueDate() {
         return dueDate;
     }
@@ -100,11 +151,67 @@ public class AssignmentDto {
         this.allowLateSubmission = allowLateSubmission;
     }
 
+    public String getAllowedFormats() {
+        return allowedFormats;
+    }
+
+    public void setAllowedFormats(String allowedFormats) {
+        this.allowedFormats = allowedFormats;
+    }
+
+    public String getAttachmentUrl() {
+        return attachmentUrl;
+    }
+
+    public void setAttachmentUrl(String attachmentUrl) {
+        this.attachmentUrl = attachmentUrl;
+    }
+
+    public String getAttachmentName() {
+        return attachmentName;
+    }
+
+    public void setAttachmentName(String attachmentName) {
+        this.attachmentName = attachmentName;
+    }
+
+    public Long getAttachmentSizeBytes() {
+        return attachmentSizeBytes;
+    }
+
+    public void setAttachmentSizeBytes(Long attachmentSizeBytes) {
+        this.attachmentSizeBytes = attachmentSizeBytes;
+    }
+
     public String getStatus() {
         return status;
     }
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public int getSubmissionCount() {
+        return submissionCount;
+    }
+
+    public void setSubmissionCount(int submissionCount) {
+        this.submissionCount = submissionCount;
+    }
+
+    public int getGradedCount() {
+        return gradedCount;
+    }
+
+    public void setGradedCount(int gradedCount) {
+        this.gradedCount = gradedCount;
+    }
+
+    public AssignmentSubmissionDto getStudentSubmission() {
+        return studentSubmission;
+    }
+
+    public void setStudentSubmission(AssignmentSubmissionDto studentSubmission) {
+        this.studentSubmission = studentSubmission;
     }
 }

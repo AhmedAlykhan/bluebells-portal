@@ -1,12 +1,16 @@
 package com.bluebells.lms.dto;
 
 import com.bluebells.lms.Course;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class CourseDto {
 
     private Long id;
     private Long subjectId;
     private String subjectName;
+    private String subjectCode;
     private Long sectionId;
     private String sectionName;
     private String className;
@@ -15,6 +19,13 @@ public class CourseDto {
     private String title;
     private String description;
     private String status;
+    private int moduleCount;
+    private int lessonCount;
+    private int assignmentCount;
+    private int resourceCount;
+    private int videoCount;
+    private Double completionPercentage;
+    private List<CourseModuleDto> modules = new ArrayList<>();
 
     public CourseDto() {
     }
@@ -26,6 +37,7 @@ public class CourseDto {
         if (entity.getSubject() != null) {
             dto.setSubjectId(entity.getSubject().getId());
             dto.setSubjectName(entity.getSubject().getName());
+            dto.setSubjectCode(entity.getSubject().getCode());
         }
         if (entity.getSection() != null) {
             dto.setSectionId(entity.getSection().getId());
@@ -41,6 +53,18 @@ public class CourseDto {
         dto.setTitle(entity.getTitle());
         dto.setDescription(entity.getDescription());
         dto.setStatus(entity.getStatus());
+
+        if (entity.getModules() != null) {
+            dto.setModules(entity.getModules().stream()
+                    .map(CourseModuleDto::fromEntity)
+                    .collect(Collectors.toList()));
+            dto.setModuleCount(entity.getModules().size());
+        }
+        dto.setLessonCount(entity.getLessons() != null ? entity.getLessons().size() : 0);
+        dto.setAssignmentCount(entity.getAssignments() != null ? entity.getAssignments().size() : 0);
+        dto.setResourceCount(entity.getResources() != null ? entity.getResources().size() : 0);
+        dto.setVideoCount(entity.getVideos() != null ? entity.getVideos().size() : 0);
+
         return dto;
     }
 
@@ -66,6 +90,14 @@ public class CourseDto {
 
     public void setSubjectName(String subjectName) {
         this.subjectName = subjectName;
+    }
+
+    public String getSubjectCode() {
+        return subjectCode;
+    }
+
+    public void setSubjectCode(String subjectCode) {
+        this.subjectCode = subjectCode;
     }
 
     public Long getSectionId() {
@@ -130,5 +162,61 @@ public class CourseDto {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public int getModuleCount() {
+        return moduleCount;
+    }
+
+    public void setModuleCount(int moduleCount) {
+        this.moduleCount = moduleCount;
+    }
+
+    public int getLessonCount() {
+        return lessonCount;
+    }
+
+    public void setLessonCount(int lessonCount) {
+        this.lessonCount = lessonCount;
+    }
+
+    public int getAssignmentCount() {
+        return assignmentCount;
+    }
+
+    public void setAssignmentCount(int assignmentCount) {
+        this.assignmentCount = assignmentCount;
+    }
+
+    public int getResourceCount() {
+        return resourceCount;
+    }
+
+    public void setResourceCount(int resourceCount) {
+        this.resourceCount = resourceCount;
+    }
+
+    public int getVideoCount() {
+        return videoCount;
+    }
+
+    public void setVideoCount(int videoCount) {
+        this.videoCount = videoCount;
+    }
+
+    public Double getCompletionPercentage() {
+        return completionPercentage;
+    }
+
+    public void setCompletionPercentage(Double completionPercentage) {
+        this.completionPercentage = completionPercentage;
+    }
+
+    public List<CourseModuleDto> getModules() {
+        return modules;
+    }
+
+    public void setModules(List<CourseModuleDto> modules) {
+        this.modules = modules;
     }
 }

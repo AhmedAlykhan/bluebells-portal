@@ -38,11 +38,22 @@ public class Course {
     private String status = "PUBLISHED";
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("displayOrder ASC")
+    private List<CourseModule> modules = new ArrayList<>();
+
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("sequenceOrder ASC")
     private List<Lesson> lessons = new ArrayList<>();
 
     @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Assignment> assignments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<LearningResource> resources = new ArrayList<>();
+
+    @OneToMany(mappedBy = "course", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("displayOrder ASC")
+    private List<YouTubeVideo> videos = new ArrayList<>();
 
     @Column(name = "created_at", nullable = false)
     private Instant createdAt = Instant.now();
@@ -60,6 +71,8 @@ public class Course {
         this.title = title;
         this.description = description;
         this.status = "PUBLISHED";
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
     }
 
     public Long getId() {
@@ -118,6 +131,14 @@ public class Course {
         this.status = status;
     }
 
+    public List<CourseModule> getModules() {
+        return modules;
+    }
+
+    public void setModules(List<CourseModule> modules) {
+        this.modules = modules;
+    }
+
     public List<Lesson> getLessons() {
         return lessons;
     }
@@ -132,6 +153,22 @@ public class Course {
 
     public void setAssignments(List<Assignment> assignments) {
         this.assignments = assignments;
+    }
+
+    public List<LearningResource> getResources() {
+        return resources;
+    }
+
+    public void setResources(List<LearningResource> resources) {
+        this.resources = resources;
+    }
+
+    public List<YouTubeVideo> getVideos() {
+        return videos;
+    }
+
+    public void setVideos(List<YouTubeVideo> videos) {
+        this.videos = videos;
     }
 
     public Instant getCreatedAt() {

@@ -50,4 +50,21 @@ declare module 'lucide-react' {
   export const PlusCircle: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
   export const UserPlus: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
   export const FileCheck: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const Play: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const Video: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const Link: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const ZoomIn: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const ZoomOut: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const RotateCw: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const Maximize2: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const Minimize2: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const ExternalLink: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const Image: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const Camera: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const MessageSquare: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const RefreshCw: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const Folder: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const FolderPlus: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const Layers: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
+  export const Sparkles: React.FC<React.SVGProps<SVGSVGElement> & { size?: number | string }>;
 }

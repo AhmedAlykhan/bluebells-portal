@@ -3,6 +3,9 @@ package com.bluebells.lms.dto;
 import com.bluebells.lms.AssignmentSubmission;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class AssignmentSubmissionDto {
 
@@ -10,14 +13,18 @@ public class AssignmentSubmissionDto {
     private Long assignmentId;
     private String assignmentTitle;
     private BigDecimal maxMarks;
+    private BigDecimal passingMarks;
+    private String allowedFormats;
     private Long studentId;
     private String studentName;
     private String submissionText;
     private String fileUrl;
+    private List<SubmissionFileDto> submissionFiles = new ArrayList<>();
     private Instant submittedAt;
     private boolean late;
     private String status;
     private BigDecimal marksObtained;
+    private Boolean passed;
     private String teacherFeedback;
     private Instant gradedAt;
     private String gradedByName;
@@ -33,6 +40,8 @@ public class AssignmentSubmissionDto {
             dto.setAssignmentId(entity.getAssignment().getId());
             dto.setAssignmentTitle(entity.getAssignment().getTitle());
             dto.setMaxMarks(entity.getAssignment().getMaxMarks());
+            dto.setPassingMarks(entity.getAssignment().getPassingMarks());
+            dto.setAllowedFormats(entity.getAssignment().getAllowedFormats());
         }
         if (entity.getStudent() != null) {
             dto.setStudentId(entity.getStudent().getId());
@@ -44,11 +53,23 @@ public class AssignmentSubmissionDto {
         dto.setLate(entity.isLate());
         dto.setStatus(entity.getStatus());
         dto.setMarksObtained(entity.getMarksObtained());
+
+        if (entity.getMarksObtained() != null && entity.getAssignment() != null && entity.getAssignment().getPassingMarks() != null) {
+            dto.setPassed(entity.getMarksObtained().compareTo(entity.getAssignment().getPassingMarks()) >= 0);
+        }
+
         dto.setTeacherFeedback(entity.getTeacherFeedback());
         dto.setGradedAt(entity.getGradedAt());
         if (entity.getGradedBy() != null) {
             dto.setGradedByName(entity.getGradedBy().getFullName());
         }
+
+        if (entity.getSubmissionFiles() != null) {
+            dto.setSubmissionFiles(entity.getSubmissionFiles().stream()
+                    .map(SubmissionFileDto::fromEntity)
+                    .collect(Collectors.toList()));
+        }
+
         return dto;
     }
 
@@ -84,6 +105,22 @@ public class AssignmentSubmissionDto {
         this.maxMarks = maxMarks;
     }
 
+    public BigDecimal getPassingMarks() {
+        return passingMarks;
+    }
+
+    public void setPassingMarks(BigDecimal passingMarks) {
+        this.passingMarks = passingMarks;
+    }
+
+    public String getAllowedFormats() {
+        return allowedFormats;
+    }
+
+    public void setAllowedFormats(String allowedFormats) {
+        this.allowedFormats = allowedFormats;
+    }
+
     public Long getStudentId() {
         return studentId;
     }
@@ -116,6 +153,14 @@ public class AssignmentSubmissionDto {
         this.fileUrl = fileUrl;
     }
 
+    public List<SubmissionFileDto> getSubmissionFiles() {
+        return submissionFiles;
+    }
+
+    public void setSubmissionFiles(List<SubmissionFileDto> submissionFiles) {
+        this.submissionFiles = submissionFiles;
+    }
+
     public Instant getSubmittedAt() {
         return submittedAt;
     }
@@ -146,6 +191,14 @@ public class AssignmentSubmissionDto {
 
     public void setMarksObtained(BigDecimal marksObtained) {
         this.marksObtained = marksObtained;
+    }
+
+    public Boolean getPassed() {
+        return passed;
+    }
+
+    public void setPassed(Boolean passed) {
+        this.passed = passed;
     }
 
     public String getTeacherFeedback() {

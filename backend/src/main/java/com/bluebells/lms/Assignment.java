@@ -18,6 +18,10 @@ public class Assignment {
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "module_id")
+    private CourseModule module;
+
     @Column(nullable = false, length = 128)
     private String title;
 
@@ -27,11 +31,26 @@ public class Assignment {
     @Column(name = "max_marks", nullable = false, precision = 5, scale = 2)
     private BigDecimal maxMarks = new BigDecimal("100.00");
 
+    @Column(name = "passing_marks", nullable = false, precision = 5, scale = 2)
+    private BigDecimal passingMarks = new BigDecimal("40.00");
+
     @Column(name = "due_date", nullable = false)
     private Instant dueDate;
 
     @Column(name = "allow_late_submission", nullable = false)
     private boolean allowLateSubmission = false;
+
+    @Column(name = "allowed_formats", nullable = false, length = 128)
+    private String allowedFormats = "PDF,IMAGES,DOCX";
+
+    @Column(name = "attachment_url", length = 512)
+    private String attachmentUrl;
+
+    @Column(name = "attachment_name", length = 255)
+    private String attachmentName;
+
+    @Column(name = "attachment_size_bytes")
+    private Long attachmentSizeBytes;
 
     @Column(nullable = false, length = 16)
     private String status = "PUBLISHED";
@@ -53,9 +72,34 @@ public class Assignment {
         this.title = title;
         this.instructions = instructions;
         this.maxMarks = maxMarks != null ? maxMarks : new BigDecimal("100.00");
+        this.passingMarks = new BigDecimal("40.00");
         this.dueDate = dueDate;
         this.allowLateSubmission = allowLateSubmission;
+        this.allowedFormats = "PDF,IMAGES,DOCX";
         this.status = "PUBLISHED";
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
+    }
+
+    public Assignment(Course course, CourseModule module, String title, String instructions,
+                      BigDecimal maxMarks, BigDecimal passingMarks, Instant dueDate,
+                      boolean allowLateSubmission, String allowedFormats,
+                      String attachmentUrl, String attachmentName, Long attachmentSizeBytes) {
+        this.course = course;
+        this.module = module;
+        this.title = title;
+        this.instructions = instructions;
+        this.maxMarks = maxMarks != null ? maxMarks : new BigDecimal("100.00");
+        this.passingMarks = passingMarks != null ? passingMarks : new BigDecimal("40.00");
+        this.dueDate = dueDate;
+        this.allowLateSubmission = allowLateSubmission;
+        this.allowedFormats = allowedFormats != null ? allowedFormats : "PDF,IMAGES,DOCX";
+        this.attachmentUrl = attachmentUrl;
+        this.attachmentName = attachmentName;
+        this.attachmentSizeBytes = attachmentSizeBytes;
+        this.status = "PUBLISHED";
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
     }
 
     public Long getId() {
@@ -72,6 +116,14 @@ public class Assignment {
 
     public void setCourse(Course course) {
         this.course = course;
+    }
+
+    public CourseModule getModule() {
+        return module;
+    }
+
+    public void setModule(CourseModule module) {
+        this.module = module;
     }
 
     public String getTitle() {
@@ -98,6 +150,14 @@ public class Assignment {
         this.maxMarks = maxMarks;
     }
 
+    public BigDecimal getPassingMarks() {
+        return passingMarks;
+    }
+
+    public void setPassingMarks(BigDecimal passingMarks) {
+        this.passingMarks = passingMarks;
+    }
+
     public Instant getDueDate() {
         return dueDate;
     }
@@ -112,6 +172,38 @@ public class Assignment {
 
     public void setAllowLateSubmission(boolean allowLateSubmission) {
         this.allowLateSubmission = allowLateSubmission;
+    }
+
+    public String getAllowedFormats() {
+        return allowedFormats;
+    }
+
+    public void setAllowedFormats(String allowedFormats) {
+        this.allowedFormats = allowedFormats;
+    }
+
+    public String getAttachmentUrl() {
+        return attachmentUrl;
+    }
+
+    public void setAttachmentUrl(String attachmentUrl) {
+        this.attachmentUrl = attachmentUrl;
+    }
+
+    public String getAttachmentName() {
+        return attachmentName;
+    }
+
+    public void setAttachmentName(String attachmentName) {
+        this.attachmentName = attachmentName;
+    }
+
+    public Long getAttachmentSizeBytes() {
+        return attachmentSizeBytes;
+    }
+
+    public void setAttachmentSizeBytes(Long attachmentSizeBytes) {
+        this.attachmentSizeBytes = attachmentSizeBytes;
     }
 
     public String getStatus() {

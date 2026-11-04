@@ -670,72 +670,10 @@ export function AttendancePage() {
 }
 
 // ============================================================================
-// 6. LMS & COURSES PAGE
+// 6. LMS & COURSES PAGE (Full-featured Master LMS)
 // ============================================================================
-export function LmsPage() {
-  return (
-    <div className="space-y-6">
-      <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
-            LMS Active
-          </span>
-          <h2 className="text-xl font-bold text-slate-800 mt-2">Courses, Lessons & Coursework</h2>
-          <p className="text-sm text-slate-500">
-            Digital homework distribution, student submissions, teacher grading, and feedback loop.
-          </p>
-        </div>
-      </div>
+export { LmsPage } from './lms/LmsPage';
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded">MATH-9</span>
-            <span className="text-xs font-semibold text-emerald-600">PUBLISHED</span>
-          </div>
-          <h3 className="text-base font-bold text-slate-800 mt-2">Matriculation Mathematics Class 9</h3>
-          <p className="text-xs text-slate-500 mt-1">Instructor: Sir Ahmed Khan • Section 9-A</p>
-
-          <div className="mt-4 space-y-2 border-t border-slate-100 pt-3 text-xs">
-            <p className="font-semibold text-slate-700">Published Lessons:</p>
-            <p className="text-slate-600">• Unit 1: Real and Complex Numbers (Conjugates & Proofs)</p>
-            <p className="text-slate-600">• Unit 2: Logarithms & Laws of Indices</p>
-          </div>
-
-          <div className="mt-4 p-3 rounded-lg bg-slate-50 border border-slate-200 text-xs">
-            <p className="font-bold text-slate-800">Active Assignment: Exercise 1.2 Proofs</p>
-            <p className="text-slate-500 mt-0.5">Due: Nov 5, 2026 • Max Marks: 50.00</p>
-            <div className="mt-2 text-emerald-700 font-semibold">
-              Ali Khan: Graded 48.00/50.00 ("Distinction-level work!")
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded">PHY-9</span>
-            <span className="text-xs font-semibold text-emerald-600">PUBLISHED</span>
-          </div>
-          <h3 className="text-base font-bold text-slate-800 mt-2">Secondary Physics Class 9</h3>
-          <p className="text-xs text-slate-500 mt-1">Instructor: Miss Fatima Shah • Section 9-A</p>
-
-          <div className="mt-4 space-y-2 border-t border-slate-100 pt-3 text-xs">
-            <p className="font-semibold text-slate-700">Published Lessons:</p>
-            <p className="text-slate-600">• Unit 1: Physical Quantities & Measurement (Vernier Calipers)</p>
-          </div>
-
-          <div className="mt-4 p-3 rounded-lg bg-slate-50 border border-slate-200 text-xs">
-            <p className="font-bold text-slate-800">Lab Assignment: Density Measurement</p>
-            <p className="text-slate-500 mt-0.5">Due: Nov 10, 2026 • Max Marks: 25.00</p>
-            <div className="mt-2 text-slate-600">
-              Submissions in progress (28 / 32 received)
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ============================================================================
 // 7. EXAMINATIONS & REPORT CARDS PAGE

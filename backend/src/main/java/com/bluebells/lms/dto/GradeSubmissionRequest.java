@@ -11,6 +11,7 @@ public class GradeSubmissionRequest {
     private BigDecimal marksObtained;
 
     private String teacherFeedback;
+    private String status = "GRADED"; // 'GRADED' or 'RETURNED_FOR_CORRECTION'
 
     public GradeSubmissionRequest() {
     }
@@ -18,6 +19,13 @@ public class GradeSubmissionRequest {
     public GradeSubmissionRequest(BigDecimal marksObtained, String teacherFeedback) {
         this.marksObtained = marksObtained;
         this.teacherFeedback = teacherFeedback;
+        this.status = "GRADED";
+    }
+
+    public GradeSubmissionRequest(BigDecimal marksObtained, String teacherFeedback, String status) {
+        this.marksObtained = marksObtained;
+        this.teacherFeedback = teacherFeedback;
+        this.status = status != null ? status : "GRADED";
     }
 
     public BigDecimal getMarksObtained() {
@@ -34,5 +42,13 @@ public class GradeSubmissionRequest {
 
     public void setTeacherFeedback(String teacherFeedback) {
         this.teacherFeedback = teacherFeedback;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }
