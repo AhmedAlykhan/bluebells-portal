@@ -1,60 +1,61 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Users, 
-  CheckCircle2, 
-  CreditCard, 
+  GraduationCap, 
   Award, 
-  ChevronRight,
-  Printer
+  CreditCard, 
+  Printer, 
+  Phone, 
+  MessageSquare
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { ReportCardModal } from '../../components/modals/ReportCardModal';
 import { FeeChallanModal } from '../../components/modals/FeeChallanModal';
 import { getReportCardByName } from '../../data/reportCardsData';
 import { apiClient } from '../../api/client';
-import { Link } from 'react-router-dom';
 
 interface Child {
-  id: number;
+  id: string;
   name: string;
-  className: string;
-  rollNumber: string;
-  admissionNumber: string;
-  attendanceRate: string;
-  termResult: string;
-  feeStatus: 'PAID' | 'DUE';
-  feeAmount: string;
-  classTeacher: string;
+  class: string;
+  section: string;
+  roll: string;
+  admissionNo: string;
+  attendance: string;
+  midtermResult: string;
+  feeStatus: string;
+  feeBalance: string;
+  teacher: string;
+  teacherPhone: string;
 }
-
-const DEFAULT_CHILDREN: Child[] = [
-  {
-    id: 1,
-    name: 'Ali Khan',
-    className: 'Class 9-A (Matriculation Part I)',
-    rollNumber: '09-A-12',
-    admissionNumber: 'BSS-2024-0104',
-    attendanceRate: '96.2%',
-    termResult: 'Grade A-1 (89.6%)',
-    feeStatus: 'PAID',
-    feeAmount: 'Rs. 10,000',
-    classTeacher: 'Sir Ahmed Khan'
-  }
-];
 
 export const ParentDashboard: React.FC = () => {
   const { user } = useAuth();
-  const [children, setChildren] = useState<Child[]>(DEFAULT_CHILDREN);
-  const [selectedChildIndex, setSelectedChildIndex] = useState(0);
   const [showReportCard, setShowReportCard] = useState(false);
-  const [showFeeChallan, setShowFeeChallan] = useState(false);
+  const [showChallan, setShowChallan] = useState(false);
+  const [children, setChildren] = useState<Child[]>([
+    {
+      id: '1',
+      name: 'Ali Khan',
+      class: 'Class 9',
+      section: 'Section A',
+      roll: '01',
+      admissionNo: 'BSS-2024-0104',
+      attendance: '96.2%',
+      midtermResult: '1st Position (89.6% • Grade A-1)',
+      feeStatus: 'PAID',
+      feeBalance: 'Rs. 0.00',
+      teacher: 'Sir Ahmed Khan',
+      teacherPhone: '+92 316 9681932',
+    },
+  ]);
+  const [selectedChildIndex, setSelectedChildIndex] = useState(0);
 
   useEffect(() => {
-    async function fetchChildren() {
-      try {
-        const res = await apiClient.get('/guardians/my-children');
-        if (res.data?.data && Array.isArray(res.data.data) && res.data.data.length > 0) {
-          interface RawChild {
+    apiClient.get('/guardians/my-children')
+      .then(res => {
+        if (Array.isArray(res.data?.data) && res.data.data.length > 0) {
+          interface ChildApi {
             id: number;
             fullName?: string;
             activeClassName?: string;
@@ -62,261 +63,223 @@ export const ParentDashboard: React.FC = () => {
             rollNumber?: string;
             admissionNumber?: string;
           }
-          const mapped: Child[] = res.data.data.map((c: RawChild) => ({
-            id: c.id,
+          const mapped: Child[] = res.data.data.map((c: ChildApi) => ({
+            id: c.id.toString(),
             name: c.fullName || 'Ali Khan',
-            className: c.activeClassName 
-              ? `${c.activeClassName}${c.activeSectionName ? ' - ' + c.activeSectionName : ''}` 
-              : 'Class 9-A (Matriculation Part I)',
-            rollNumber: c.rollNumber || '09-A-12',
-            admissionNumber: c.admissionNumber || 'BSS-2024-0104',
-            attendanceRate: '96.2%',
-            termResult: 'Grade A-1 (89.6%)',
+            class: c.activeClassName || 'Class 9',
+            section: c.activeSectionName || 'Section A',
+            roll: c.rollNumber || '01',
+            admissionNo: c.admissionNumber || 'BSS-2024-0104',
+            attendance: '96.2%',
+            midtermResult: '1st Position (89.6% • Grade A-1)',
             feeStatus: 'PAID',
-            feeAmount: 'Rs. 10,000',
-            classTeacher: 'Sir Ahmed Khan'
+            feeBalance: 'Rs. 0.00',
+            teacher: 'Sir Ahmed Khan',
+            teacherPhone: '+92 316 9681932',
           }));
-          const isTariqKhan = user?.username === 'parent.khan' || user?.fullName?.toLowerCase().includes('tariq');
-          const filtered = isTariqKhan 
-            ? mapped.filter(c => c.name.toLowerCase().includes('ali')) 
-            : mapped;
-          setChildren(filtered.length > 0 ? filtered : [DEFAULT_CHILDREN[0]]);
+          setChildren(mapped);
         }
-      } catch {
-        // Fallback to default children
-      }
-    }
-    fetchChildren();
-  }, [user]);
+      })
+      .catch(() => {});
+  }, []);
 
-  const parentName = user?.fullName || 'Mohammad Tariq Khan';
-  const child = children[selectedChildIndex] || children[0];
+  const currentChild = children[selectedChildIndex] || children[0];
+
+  const recentReceipts = [
+    { receiptNo: 'REC-202610-0001', month: 'October 2026 Tuition', amount: 'Rs. 10,000', method: 'Online Bank Transfer (Meezan #PK98234710)', status: 'CLEARED' },
+    { receiptNo: 'REC-202609-0001', month: 'September 2026 Tuition', amount: 'Rs. 10,000', method: 'Bank Alfalah Autobahn Branch Deposit', status: 'CLEARED' },
+  ];
 
   return (
     <div className="space-y-6">
-      {/* Parent Welcome Banner */}
-      <div className="bg-gradient-to-r from-emerald-900 to-teal-800 rounded-2xl p-6 text-white shadow-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      {/* Guardian Welcome Banner */}
+      <div className="bg-gradient-to-r from-[#123B70] via-[#1A5392] to-[#2167B2] rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
         <div>
-          <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-white/20 text-white mb-2 inline-block">
-            Guardian & Parent Portal
-          </span>
-          <h2 className="text-2xl font-bold tracking-tight">
-            Welcome, {parentName}
-          </h2>
-          <p className="text-emerald-100 text-sm mt-1 max-w-2xl">
-            Latifabad Campus • Overview for your enrolled ward (Ali Khan) at Bluebells Schooling System Hyderabad.
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-white/15 text-brand-100 mb-3 border border-white/20">
+            <Users className="w-3.5 h-3.5 text-brand-300" />
+            <span>Guardian Portal • Latifabad Campus</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+            Welcome, {user?.fullName || 'Mohammad Tariq Khan'}
+          </h1>
+          <p className="text-brand-100 text-xs sm:text-sm mt-1.5 max-w-2xl leading-relaxed">
+            Monitor your child's classroom attendance, Sindh Board academic transcripts, teacher observations, and official Bank Alfalah fee vouchers.
           </p>
         </div>
 
-        {/* Child Selector or Single Ward Quick Actions */}
-        {children.length > 1 ? (
-          <div className="flex bg-emerald-950/40 p-1.5 rounded-xl border border-emerald-700/50">
-            {children.map((c, idx) => (
-              <button
-                key={c.id}
-                onClick={() => setSelectedChildIndex(idx)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                  selectedChildIndex === idx
-                    ? 'bg-white text-emerald-950 shadow'
-                    : 'text-emerald-200 hover:text-white'
-                }`}
-              >
-                {c.name} ({c.className.includes(' ') ? c.className.split(' ')[1] : c.className})
-              </button>
-            ))}
-          </div>
-        ) : (
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              onClick={() => setShowReportCard(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-white text-emerald-950 font-bold rounded-lg shadow text-xs hover:bg-emerald-50 transition-colors"
-            >
-              <Award className="w-4 h-4 text-amber-500" />
-              <span>View Ali's Report Card</span>
-            </button>
-            <button
-              onClick={() => setShowFeeChallan(true)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-purple-700 hover:bg-purple-800 text-white font-bold rounded-lg shadow text-xs transition-colors"
-            >
-              <Printer className="w-4 h-4 text-amber-300" />
-              <span>Print Ali's Fee Challan</span>
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Selected Child Info & KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-slate-500">Student Attendance</span>
-            <div className="p-2 rounded-lg text-emerald-600 bg-emerald-50">
-              <CheckCircle2 className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-4">
-            <span className="text-2xl font-bold text-slate-800">{child.attendanceRate}</span>
-            <p className="text-xs text-slate-500 mt-1">Excellent consistency</p>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-slate-500">Academic Standing</span>
-            <div className="p-2 rounded-lg text-amber-600 bg-amber-50">
-              <Award className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-4">
-            <span className="text-2xl font-bold text-slate-800">{child.termResult.split(' ')[1]}</span>
-            <p className="text-xs text-slate-500 mt-1">{child.termResult}</p>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-slate-500">Tuition Fee Ledger</span>
-            <div className="p-2 rounded-lg text-blue-600 bg-blue-50">
-              <CreditCard className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-4">
-            <span className="text-2xl font-bold text-emerald-600">{child.feeStatus}</span>
-            <p className="text-xs text-slate-500 mt-1">{child.feeAmount} • Cleared</p>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-slate-500">Class In-charge</span>
-            <div className="p-2 rounded-lg text-purple-600 bg-purple-50">
-              <Users className="w-5 h-5" />
-            </div>
-          </div>
-          <div className="mt-4">
-            <span className="text-lg font-bold text-slate-800">{child.classTeacher}</span>
-            <p className="text-xs text-slate-500 mt-1">{child.className}</p>
-          </div>
+        <div className="flex flex-wrap gap-2.5">
+          <button
+            onClick={() => setShowReportCard(true)}
+            className="px-4 py-2.5 bg-white text-[#123B70] hover:bg-brand-50 font-bold rounded-xl shadow-md text-xs transition-all flex items-center gap-2"
+          >
+            <Award className="w-4 h-4 text-amber-500" />
+            <span>{currentChild.name}'s Report Card</span>
+          </button>
+          <button
+            onClick={() => setShowChallan(true)}
+            className="px-4 py-2.5 bg-purple-700 hover:bg-purple-800 text-white font-bold rounded-xl shadow-md text-xs transition-all flex items-center gap-2"
+          >
+            <Printer className="w-4 h-4" />
+            <span>Print Fee Challan</span>
+          </button>
         </div>
       </div>
 
-      {/* Main Details Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
+      {/* Child Selector Tabs (if multiple children) */}
+      {children.length > 1 && (
+        <div className="flex items-center gap-2 bg-white p-2 rounded-2xl border border-slate-200 shadow-sm">
+          <span className="text-xs font-bold text-slate-500 px-3 uppercase tracking-wider">Select Child:</span>
+          {children.map((child, idx) => (
+            <button
+              key={child.id}
+              onClick={() => setSelectedChildIndex(idx)}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                selectedChildIndex === idx
+                  ? 'bg-[#123B70] text-white shadow'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              {child.name} ({child.class})
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Child Summary Card */}
+      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 border-b border-slate-100 gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-brand-50 border border-brand-200 flex items-center justify-center text-brand-700">
+              <GraduationCap className="w-7 h-7" />
+            </div>
             <div>
-              <h3 className="text-base font-bold text-slate-800">
-                Academic Performance: {child.name}
-              </h3>
-              <p className="text-xs text-slate-500">
-                Admission No: {child.admissionNumber} • Roll: {child.rollNumber} • {child.className}
-              </p>
-            </div>
-            <button
-              onClick={() => setShowReportCard(true)}
-              className="px-3 py-1.5 bg-brand-700 hover:bg-brand-800 text-white rounded-lg text-xs font-semibold shadow transition-colors flex items-center gap-1.5"
-            >
-              <Award className="w-4 h-4 text-amber-400" />
-              <span>View Sindh Board Report Card</span>
-            </button>
-          </div>
-
-          <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-slate-600">Midterm Examination Status:</span>
-              <span className="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                Results Published & Certified
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-slate-600">Overall Term Aggregate:</span>
-              <span className="font-bold text-slate-800">672 / 750 (89.6%) - Position: 1st</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-slate-600">Teacher Remarks:</span>
-              <span className="italic text-slate-700">"Demonstrates superior academic diligence and outstanding analytical mindset."</span>
-            </div>
-          </div>
-
-          <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-            <Link
-              to="/attendance"
-              className="p-4 rounded-xl border border-slate-200 hover:border-brand-300 hover:bg-brand-50/30 transition-all flex items-center justify-between"
-            >
-              <div>
-                <p className="font-bold text-slate-800">Attendance Log</p>
-                <p className="text-slate-500 text-[11px] mt-0.5">View daily presence, leaves, and records</p>
-              </div>
-              <ChevronRight className="w-4 h-4 text-slate-400" />
-            </Link>
-
-            <Link
-              to="/timetable"
-              className="p-4 rounded-xl border border-slate-200 hover:border-brand-300 hover:bg-brand-50/30 transition-all flex items-center justify-between"
-            >
-              <div>
-                <p className="font-bold text-slate-800">Weekly Class Timetable</p>
-                <p className="text-slate-500 text-[11px] mt-0.5">Bell schedule and subject periods</p>
-              </div>
-              <ChevronRight className="w-4 h-4 text-slate-400" />
-            </Link>
-          </div>
-        </div>
-
-        {/* Tuition Fee Voucher Box */}
-        <div className="space-y-6">
-          <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-            <h3 className="text-base font-bold text-slate-800 mb-3 flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-brand-700" />
-              Tuition Fee Voucher
-            </h3>
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-2">
-              <div className="flex justify-between">
-                <span className="text-slate-500">Challan Ref:</span>
-                <span className="font-mono font-bold text-slate-800">INV-202610-0104</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Due Date:</span>
-                <span className="text-slate-800">10 October 2026</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Billed Amount:</span>
-                <span className="font-bold text-slate-800">{child.feeAmount}</span>
-              </div>
-              <div className="flex justify-between items-center pt-2 border-t border-slate-200">
-                <span className="text-slate-500">Payment Status:</span>
-                <span className="px-2 py-0.5 rounded font-bold text-[10px] bg-emerald-100 text-emerald-800">
-                  PAID IN FULL
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl font-bold text-slate-800">{currentChild.name}</h2>
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  Enrolled & Active
                 </span>
               </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {currentChild.class} - {currentChild.section} • Roll #{currentChild.roll} • Admission #{currentChild.admissionNo}
+              </p>
             </div>
+          </div>
 
-            <Link
-              to="/fees"
-              className="mt-4 block w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-center font-semibold text-xs rounded-lg transition-colors"
+          <div className="flex items-center gap-3">
+            <div className="text-right">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Class Teacher</span>
+              <span className="text-xs font-bold text-slate-800 block">{currentChild.teacher}</span>
+            </div>
+            <a
+              href={`tel:${currentChild.teacherPhone}`}
+              className="p-2.5 rounded-xl bg-blue-50 text-brand-700 hover:bg-blue-100 transition-colors"
+              title="Call Class Teacher"
             >
-              View Full Fee Ledger & Receipts
-            </Link>
-            <button
-              onClick={() => setShowFeeChallan(true)}
-              className="mt-2 w-full py-2 bg-purple-700 hover:bg-purple-800 text-white text-center font-semibold text-xs rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow-sm"
-            >
-              <Printer className="w-3.5 h-3.5 text-amber-300" />
-              <span>Print 3-Copy Bank Challan</span>
-            </button>
+              <Phone className="w-4 h-4" />
+            </a>
+          </div>
+        </div>
+
+        {/* 4 Child Metrics */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-6">
+          <div className="p-4 rounded-2xl bg-[#F8FAFC] border border-slate-100">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Attendance Rate</span>
+            <div className="text-2xl font-black text-emerald-700 mt-1">{currentChild.attendance}</div>
+            <p className="text-[11px] text-slate-500 mt-0.5">Regular and on time</p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-[#F8FAFC] border border-slate-100">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Academic Standing</span>
+            <div className="text-xl font-black text-brand-800 mt-1">1st Position</div>
+            <p className="text-[11px] text-emerald-600 font-semibold mt-0.5">Sindh Board Grade A-1</p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-[#F8FAFC] border border-slate-100">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Fee Balance Due</span>
+            <div className="text-2xl font-black text-emerald-700 mt-1">{currentChild.feeBalance}</div>
+            <p className="text-[11px] text-emerald-600 font-semibold mt-0.5">Current Month Fully Paid</p>
+          </div>
+
+          <div className="p-4 rounded-2xl bg-[#F8FAFC] border border-slate-100">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Next Major Exam</span>
+            <div className="text-xl font-black text-slate-800 mt-1">Dec 01, 2026</div>
+            <p className="text-[11px] text-brand-600 font-semibold mt-0.5">First Term Midterm Exams</p>
           </div>
         </div>
       </div>
 
+      {/* Fee Payment & Verified Receipts Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+              <CreditCard className="w-4 h-4 text-brand-700" />
+              <span>Tuition Fee Vouchers & Payment Receipts</span>
+            </h3>
+            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">
+              Accounts Cleared
+            </span>
+          </div>
+
+          <div className="space-y-3">
+            {recentReceipts.map((rc, idx) => (
+              <div key={idx} className="p-3.5 rounded-xl border border-slate-200 bg-[#F8FAFC] text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-slate-800">{rc.receiptNo}</span>
+                    <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold text-[10px]">
+                      {rc.status}
+                    </span>
+                  </div>
+                  <p className="text-slate-600 font-medium mt-0.5">{rc.month} • {rc.amount}</p>
+                  <p className="text-[10px] text-slate-400 font-mono mt-0.5">{rc.method}</p>
+                </div>
+                <button
+                  onClick={() => setShowChallan(true)}
+                  className="px-3 py-1.5 rounded-lg bg-purple-50 hover:bg-purple-100 text-purple-700 font-bold text-xs inline-flex items-center gap-1.5 transition-colors self-start sm:self-center"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>View Voucher</span>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Teacher Feedback & Remarks */}
+        <div className="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+          <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+            <MessageSquare className="w-4 h-4 text-brand-700" />
+            <span>Class Teacher Feedback & Remarks</span>
+          </h3>
+
+          <div className="p-4 rounded-xl bg-blue-50/70 border border-brand-100 text-xs space-y-2">
+            <div className="flex items-center justify-between text-brand-900 font-bold">
+              <span>Sir Ahmed Khan (Class Teacher)</span>
+              <span className="text-[10px] text-brand-600 font-normal">October Term Review</span>
+            </div>
+            <p className="text-slate-700 leading-relaxed italic">
+              "Ali demonstrates exceptional mathematical rigor and analytical discipline. He consistently solves problem sets ahead of deadlines and maintains an exemplary 96.2% attendance record."
+            </p>
+          </div>
+
+          <div className="p-4 rounded-xl bg-[#F8FAFC] border border-slate-200 text-xs space-y-1">
+            <span className="font-bold text-slate-800 block">Upcoming Parent-Teacher Meeting</span>
+            <p className="text-slate-600">Saturday, December 20, 2026 (09:00 AM – 01:00 PM) at Main Campus Latifabad.</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Modals */}
       <ReportCardModal
         isOpen={showReportCard}
         onClose={() => setShowReportCard(false)}
-        data={getReportCardByName(child.name)}
+        data={getReportCardByName(currentChild.name)}
       />
 
       <FeeChallanModal
-        isOpen={showFeeChallan}
-        onClose={() => setShowFeeChallan(false)}
+        isOpen={showChallan}
+        onClose={() => setShowChallan(false)}
         invoiceNumber="INV-202610-0001"
       />
     </div>

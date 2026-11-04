@@ -10,5 +10,7 @@ import java.util.Optional;
 public interface SubjectRepository extends JpaRepository<Subject, Long> {
     List<Subject> findByClassEntityId(Long classId);
     Optional<Subject> findByClassEntityIdAndCode(Long classId, String code);
+    Optional<Subject> findByClassEntityIdAndName(Long classId, String name);
+    Optional<Subject> findByName(String name);
     boolean existsByClassEntityIdAndCode(Long classId, String code);
 }

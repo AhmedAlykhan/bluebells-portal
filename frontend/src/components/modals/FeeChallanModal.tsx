@@ -6,6 +6,7 @@ import {
   BANK_COLLECTION_DETAILS, 
   FeeChallanData 
 } from '../../data/feeChallanData';
+import { BluebellsLogo } from '../brand/BluebellsLogo';
 
 interface FeeChallanModalProps {
   isOpen: boolean;
@@ -77,10 +78,8 @@ export function FeeChallanModal({
       {/* Copy Header */}
       <div>
         <div className="text-center pb-1.5 border-b border-slate-900">
-          <div className="flex items-center justify-center gap-1.5 mb-0.5">
-            <div className="w-6 h-6 rounded bg-slate-900 text-white font-black text-xs flex items-center justify-center">
-              B
-            </div>
+          <div className="flex items-center justify-center gap-2 mb-0.5">
+            <BluebellsLogo variant="crest-only" size="sm" />
             <div className="text-left">
               <h1 className="text-[12px] font-black uppercase tracking-tight text-slate-950 leading-none">
                 Bluebells Schooling System

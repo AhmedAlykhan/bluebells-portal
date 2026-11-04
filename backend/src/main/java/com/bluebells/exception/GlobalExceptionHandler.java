@@ -182,6 +182,21 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler({IllegalArgumentException.class, IllegalStateException.class})
+    public ResponseEntity<ErrorResponse> handleIllegalArgumentAndState(RuntimeException ex, HttpServletRequest request) {
+        String correlationId = UUID.randomUUID().toString();
+        log.warn("Business rule violation [{}]: {}", correlationId, ex.getMessage());
+
+        ErrorResponse error = new ErrorResponse(
+                "Bad Request",
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage(),
+                request.getRequestURI(),
+                correlationId
+        );
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneralException(Exception ex, HttpServletRequest request) {
         String correlationId = UUID.randomUUID().toString();

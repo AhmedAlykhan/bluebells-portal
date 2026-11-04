@@ -3,6 +3,8 @@ import { AppLayout } from './components/layout/AppLayout';
 import { useAuth } from './context/AuthContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { ForbiddenPage } from './components/auth/ForbiddenPage';
+import { PublicWebsite } from './pages/public/PublicWebsite';
+import { LoginPage } from './pages/LoginPage';
 
 // Role-specific Dashboards
 import { StudentDashboard } from './pages/dashboards/StudentDashboard';
@@ -10,12 +12,15 @@ import { ParentDashboard } from './pages/dashboards/ParentDashboard';
 import { TeacherDashboard } from './pages/dashboards/TeacherDashboard';
 import { AccountantDashboard } from './pages/dashboards/AccountantDashboard';
 import { AdminDashboard } from './pages/dashboards/AdminDashboard';
+import { PrincipalDashboard } from './pages/dashboards/PrincipalDashboard';
+import { VicePrincipalDashboard } from './pages/dashboards/VicePrincipalDashboard';
 
 // Module Pages
 import { 
   AcademicsPage, 
   AdmissionsPage, 
   StudentsPage, 
+  StaffPage,
   TimetablePage, 
   AttendancePage, 
   LmsPage, 
@@ -24,11 +29,13 @@ import {
   ReportsPage, 
   SettingsPage 
 } from './pages/ModulePages';
+import { BulkDataImportPage } from './pages/admin/BulkDataImportPage';
 
 /**
- * Dynamically resolves and renders the specific dashboard for the active role.
+ * Dynamically resolves and renders the authoritative dashboard for the active role.
  * Ensures students see only their personal student portal, parents see their children's portal,
- * teachers see their classroom workspace, and accountants see their finance ledger.
+ * teachers see their classroom workspace, accountants see their finance ledger,
+ * and leadership (Principal / Vice Principal) see institutional management consoles.
  */
 function RoleDashboardRouter() {
   const { user } = useAuth();
@@ -46,61 +53,84 @@ function RoleDashboardRouter() {
   if (roles.includes('ROLE_ACCOUNTANT')) {
     return <AccountantDashboard />;
   }
+  if (roles.includes('ROLE_PRINCIPAL')) {
+    return <PrincipalDashboard />;
+  }
+  if (roles.includes('ROLE_VICE_PRINCIPAL')) {
+    return <VicePrincipalDashboard />;
+  }
   return <AdminDashboard />;
 }
 
 export function App() {
   return (
     <Routes>
+      {/* Public Landing & Institutional Showcase */}
+      <Route path="/welcome" element={<PublicWebsite />} />
+
+      {/* Authentication Portal */}
+      <Route path="/login" element={<LoginPage />} />
+
+      {/* Portal Layout (AppLayout renders LoginPage when user is unauthenticated) */}
       <Route path="/" element={<AppLayout />}>
         {/* Dynamic Role-Based Landing Dashboard */}
         <Route index element={<RoleDashboardRouter />} />
 
-        {/* Academics: Staff and Teachers only */}
+        {/* Academics: Staff, Leadership, and Teachers */}
         <Route 
           path="academics" 
           element={
-            <ProtectedRoute allowedRoles={['ROLE_SUPER_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_TEACHER']}>
+            <ProtectedRoute allowedRoles={['ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_VICE_PRINCIPAL', 'ROLE_TEACHER']}>
               <AcademicsPage />
             </ProtectedRoute>
           } 
         />
 
-        {/* Admissions: School Administration and Principals only */}
+        {/* Admissions: Administration and Leadership */}
         <Route 
           path="admissions" 
           element={
-            <ProtectedRoute allowedRoles={['ROLE_SUPER_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL']}>
+            <ProtectedRoute allowedRoles={['ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_VICE_PRINCIPAL']}>
               <AdmissionsPage />
             </ProtectedRoute>
           } 
         />
 
-        {/* Student Directory: Administration and Accounts only */}
+        {/* Student Directory: Administration, Leadership, and Accounts */}
         <Route 
           path="students" 
           element={
-            <ProtectedRoute allowedRoles={['ROLE_SUPER_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_ACCOUNTANT']}>
+            <ProtectedRoute allowedRoles={['ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_VICE_PRINCIPAL', 'ROLE_ACCOUNTANT']}>
               <StudentsPage />
             </ProtectedRoute>
           } 
         />
 
-        {/* Timetable: All active roles (views automatically scoped) */}
+        {/* Staff & Faculty Directory */}
+        <Route 
+          path="staff" 
+          element={
+            <ProtectedRoute allowedRoles={['ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_VICE_PRINCIPAL']}>
+              <StaffPage />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Timetable: All active roles */}
         <Route 
           path="timetable" 
           element={
-            <ProtectedRoute allowedRoles={['ROLE_SUPER_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_TEACHER', 'ROLE_STUDENT', 'ROLE_PARENT']}>
+            <ProtectedRoute allowedRoles={['ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_VICE_PRINCIPAL', 'ROLE_TEACHER', 'ROLE_STUDENT', 'ROLE_PARENT']}>
               <TimetablePage />
             </ProtectedRoute>
           } 
         />
 
-        {/* Attendance: All active roles (views automatically scoped) */}
+        {/* Attendance: All active roles */}
         <Route 
           path="attendance" 
           element={
-            <ProtectedRoute allowedRoles={['ROLE_SUPER_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_TEACHER', 'ROLE_STUDENT', 'ROLE_PARENT']}>
+            <ProtectedRoute allowedRoles={['ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_VICE_PRINCIPAL', 'ROLE_TEACHER', 'ROLE_STUDENT', 'ROLE_PARENT']}>
               <AttendancePage />
             </ProtectedRoute>
           } 
@@ -110,7 +140,7 @@ export function App() {
         <Route 
           path="lms" 
           element={
-            <ProtectedRoute allowedRoles={['ROLE_SUPER_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_TEACHER', 'ROLE_STUDENT', 'ROLE_PARENT']}>
+            <ProtectedRoute allowedRoles={['ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_VICE_PRINCIPAL', 'ROLE_TEACHER', 'ROLE_STUDENT', 'ROLE_PARENT']}>
               <LmsPage />
             </ProtectedRoute>
           } 
@@ -120,37 +150,55 @@ export function App() {
         <Route 
           path="examinations" 
           element={
-            <ProtectedRoute allowedRoles={['ROLE_SUPER_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_TEACHER', 'ROLE_STUDENT', 'ROLE_PARENT']}>
+            <ProtectedRoute allowedRoles={['ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_VICE_PRINCIPAL', 'ROLE_TEACHER', 'ROLE_STUDENT', 'ROLE_PARENT']}>
               <ExaminationsPage />
             </ProtectedRoute>
           } 
         />
 
-        {/* Fees & Finance: Administration, Accountants, Parents, and Students (strictly forbidden for Teachers) */}
+        {/* Fees & Finance: Administration, Leadership, Accountants, Parents, and Students */}
         <Route 
           path="fees" 
           element={
-            <ProtectedRoute allowedRoles={['ROLE_SUPER_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_ACCOUNTANT', 'ROLE_PARENT', 'ROLE_STUDENT']}>
+            <ProtectedRoute allowedRoles={['ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_VICE_PRINCIPAL', 'ROLE_ACCOUNTANT', 'ROLE_PARENT', 'ROLE_STUDENT']}>
               <FeesPage />
             </ProtectedRoute>
           } 
         />
 
-        {/* Reports & Analytics: Senior administration and accountants only */}
+        {/* Reports & Analytics: Administration, Leadership, and Accountants */}
         <Route 
           path="reports" 
           element={
-            <ProtectedRoute allowedRoles={['ROLE_SUPER_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_ACCOUNTANT']}>
+            <ProtectedRoute allowedRoles={['ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_VICE_PRINCIPAL', 'ROLE_ACCOUNTANT']}>
               <ReportsPage />
             </ProtectedRoute>
           } 
         />
 
-        {/* School Settings: Super Admins and School Admins only */}
+        {/* Bulk Data Import: Super Admin, Principal, Vice Principal */}
+        <Route 
+          path="admin/data-import" 
+          element={
+            <ProtectedRoute allowedRoles={['ROLE_SUPER_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_VICE_PRINCIPAL']}>
+              <BulkDataImportPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="admin/bulk-import" 
+          element={
+            <ProtectedRoute allowedRoles={['ROLE_SUPER_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_VICE_PRINCIPAL']}>
+              <BulkDataImportPage />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* School Settings: Super Admins, School Admins, and Principals */}
         <Route 
           path="settings" 
           element={
-            <ProtectedRoute allowedRoles={['ROLE_SUPER_ADMIN', 'ROLE_SCHOOL_ADMIN']}>
+            <ProtectedRoute allowedRoles={['ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL']}>
               <SettingsPage />
             </ProtectedRoute>
           } 

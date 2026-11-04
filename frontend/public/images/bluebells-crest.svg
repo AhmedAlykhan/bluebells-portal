@@ -1,0 +1,52 @@
+<svg width="120" height="120" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bluebellGrad" x1="20" y1="20" x2="80" y2="80" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#30BDFF" />
+      <stop offset="60%" stopColor="#2167B2" />
+      <stop offset="100%" stopColor="#123B70" />
+    </linearGradient>
+    <linearGradient id="goldRibbon" x1="10" y1="80" x2="90" y2="80" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stopColor="#E5A93C" />
+      <stop offset="50%" stopColor="#F7D170" />
+      <stop offset="100%" stopColor="#D49320" />
+    </linearGradient>
+  </defs>
+
+  <!-- Outer Shield Container -->
+  <path
+    d="M50 4C74 4 88 12 88 28C88 64 64 88 50 96C36 88 12 64 12 28C12 12 26 4 50 4Z"
+    fill="#FFFFFF"
+    stroke="#123B70"
+    stroke-width="3.5"
+    stroke-linejoin="round"
+  />
+
+  <!-- Inner Decorative Contour -->
+  <path
+    d="M50 9C70 9 82 16 82 30C82 61 62 82 50 89C38 82 18 61 18 30C18 16 30 9 50 9Z"
+    fill="none"
+    stroke="#EAF3FC"
+    stroke-width="1.5"
+  />
+
+  <!-- Bluebell Central Floral Blossom -->
+  <path d="M50 20C44 32 40 44 50 56C60 44 56 32 50 20Z" fill="url(#bluebellGrad)" />
+  <path d="M48 24C38 32 32 44 38 52C44 50 46 42 48 34C49 30 48.5 26 48 24Z" fill="#30BDFF" />
+  <path d="M52 24C62 32 68 44 62 52C56 50 54 42 52 34C51 30 51.5 26 52 24Z" fill="#123B70" />
+
+  <!-- Stem & Foundation Leaves -->
+  <path d="M50 56V68" stroke="#16845B" stroke-width="3" stroke-linecap="round" />
+  <path d="M50 63C42 61 36 65 34 70C40 70 46 66 50 63Z" fill="#16845B" />
+  <path d="M50 63C58 61 64 65 66 70C60 70 54 66 50 63Z" fill="#126B49" />
+
+  <!-- Golden Academic Stars -->
+  <circle cx="28" cy="22" r="2" fill="#E5A93C" />
+  <circle cx="50" cy="14" r="2.5" fill="#E5A93C" />
+  <circle cx="72" cy="22" r="2" fill="#E5A93C" />
+
+  <!-- Bottom Ribbon / Banner -->
+  <path d="M20 78L26 73H74L80 78L75 83H25L20 78Z" fill="url(#goldRibbon)" stroke="#B37A12" stroke-width="1" />
+  <text x="50" y="80" font-size="5" font-weight="bold" font-family="sans-serif" text-anchor="middle" fill="#3B2602" letter-spacing="0.8">
+    PREPARING FOR LIFE
+  </text>
+</svg>

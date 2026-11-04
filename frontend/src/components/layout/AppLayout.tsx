@@ -10,12 +10,13 @@ import { useAuth } from '../../context/AuthContext';
 
 export const AppLayout: React.FC = () => {
   const [profile, setProfile] = useState<SchoolProfile>();
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const { user, logout, switchPersona } = useAuth();
 
   useEffect(() => {
     apiClient.get<{ success: boolean; data: SchoolProfile }>('/school/profile')
       .then((res) => {
-        if (res.data && res.data.data) {
+        if (res.data?.data) {
           setProfile(res.data.data);
         }
       })
@@ -28,10 +29,18 @@ export const AppLayout: React.FC = () => {
     return <LoginPage schoolProfile={profile} />;
   }
 
-  const activeRole = user.roles?.[0] || 'ROLE_SCHOOL_ADMIN';
+  // Authoritative role resolution: student > parent > teacher > accountant > principal > admin
+  const roles = user.roles || [];
+  let activeRole = 'ROLE_SCHOOL_ADMIN';
+  if (roles.includes('ROLE_STUDENT')) activeRole = 'ROLE_STUDENT';
+  else if (roles.includes('ROLE_PARENT')) activeRole = 'ROLE_PARENT';
+  else if (roles.includes('ROLE_TEACHER')) activeRole = 'ROLE_TEACHER';
+  else if (roles.includes('ROLE_ACCOUNTANT')) activeRole = 'ROLE_ACCOUNTANT';
+  else if (roles.includes('ROLE_PRINCIPAL')) activeRole = 'ROLE_PRINCIPAL';
+  else if (roles.includes('ROLE_SUPER_ADMIN')) activeRole = 'ROLE_SUPER_ADMIN';
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-100 print:bg-white print:min-h-0">
+    <div className="min-h-screen flex flex-col bg-[#F5F8FC] print:bg-white print:min-h-0 selection:bg-brand-100 selection:text-brand-900">
       <div className="print:hidden">
         <Header 
           schoolProfile={profile} 
@@ -39,16 +48,24 @@ export const AppLayout: React.FC = () => {
           currentUser={user}
           onLogout={logout}
           onSwitchPersona={switchPersona}
+          onToggleMobileSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
         />
       </div>
+
       <div className="flex flex-1 print:block">
         <div className="print:hidden">
-          <Sidebar activeRole={activeRole} />
+          <Sidebar 
+            activeRole={activeRole} 
+            isOpenMobile={isMobileSidebarOpen}
+            onCloseMobile={() => setIsMobileSidebarOpen(false)}
+          />
         </div>
-        <main className="flex-1 p-6 lg:p-8 max-w-7xl print:p-0 print:m-0 print:max-w-none print:w-full">
+
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto print:p-0 print:m-0 print:max-w-none print:w-full">
           <Outlet context={{ schoolProfile: profile, user }} />
         </main>
       </div>
+
       <div className="print:hidden">
         <Footer schoolProfile={profile} />
       </div>

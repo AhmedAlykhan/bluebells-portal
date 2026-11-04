@@ -44,6 +44,11 @@ public class UserPrincipal implements UserDetails {
                 authorities.add(new SimpleGrantedAuthority(perm.getCode()));
             }
         }
+        if (user.getDirectPermissions() != null) {
+            for (Permission perm : user.getDirectPermissions()) {
+                authorities.add(new SimpleGrantedAuthority(perm.getCode()));
+            }
+        }
 
         boolean isActive = "ACTIVE".equalsIgnoreCase(user.getStatus());
         boolean isNonLocked = user.getLockedUntil() == null || user.getLockedUntil().isBefore(java.time.Instant.now());

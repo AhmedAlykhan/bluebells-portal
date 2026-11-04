@@ -49,6 +49,14 @@ public class User extends BaseEntity {
     )
     private Set<Role> roles = new HashSet<>();
 
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "user_permissions",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "permission_id")
+    )
+    private Set<Permission> directPermissions = new HashSet<>();
+
     public User() {
     }
 
@@ -138,5 +146,13 @@ public class User extends BaseEntity {
 
     public void setRoles(Set<Role> roles) {
         this.roles = roles;
+    }
+
+    public Set<Permission> getDirectPermissions() {
+        return directPermissions;
+    }
+
+    public void setDirectPermissions(Set<Permission> directPermissions) {
+        this.directPermissions = directPermissions;
     }
 }

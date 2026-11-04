@@ -10,5 +10,6 @@ import java.util.Optional;
 public interface ClassRepository extends JpaRepository<ClassEntity, Long> {
     List<ClassEntity> findByGradeLevelId(Long gradeLevelId);
     Optional<ClassEntity> findByCode(String code);
+    Optional<ClassEntity> findByName(String name);
     boolean existsByCode(String code);
 }

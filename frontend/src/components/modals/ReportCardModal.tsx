@@ -6,6 +6,7 @@ import {
   ReportCardData, 
   SubjectResult 
 } from '../../data/reportCardsData';
+import { BluebellsLogo } from '../brand/BluebellsLogo';
 
 export type { SubjectResult, ReportCardData };
 
@@ -228,12 +229,9 @@ export const ReportCardModal: React.FC<ReportCardModalProps> = ({
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                   {/* Left: School Crest */}
                   <div className="flex items-center gap-3">
-                    <div className="w-16 h-16 rounded-2xl bg-slate-950 text-white flex flex-col items-center justify-center shadow-lg border-2 border-amber-500">
-                      <span className="font-serif font-black text-2xl leading-none">B</span>
-                      <span className="text-[8px] font-bold tracking-widest uppercase text-amber-300">ESTD 2010</span>
-                    </div>
+                    <BluebellsLogo variant="crest-only" size="md" />
                     <div className="text-left hidden sm:block">
-                      <p className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">Excellence in Education</p>
+                      <p className="text-[10px] font-bold text-amber-700 uppercase tracking-widest">Preparing for Life</p>
                       <p className="text-[11px] font-mono text-slate-500">Hyderabad Registration: HYD-SEC-2024-918</p>
                     </div>
                   </div>
