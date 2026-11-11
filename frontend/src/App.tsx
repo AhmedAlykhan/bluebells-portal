@@ -25,8 +25,14 @@ import {
   AttendancePage, 
   LmsPage, 
   ExaminationsPage, 
-  FeesPage, 
+  FeesPage,
   ReportsPage, 
+  AnalyticsPage,
+  StudentDevelopmentPage,
+  StudentIdCardsPage,
+  CertificatesPage,
+  SupportCentrePage,
+  IntegrationsPage,
   SettingsPage 
 } from './pages/ModulePages';
 import { BulkDataImportPage } from './pages/admin/BulkDataImportPage';
@@ -162,6 +168,66 @@ export function App() {
           element={
             <ProtectedRoute allowedRoles={['ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_VICE_PRINCIPAL', 'ROLE_ACCOUNTANT', 'ROLE_PARENT', 'ROLE_STUDENT']}>
               <FeesPage />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Management Analytics */}
+        <Route 
+          path="analytics" 
+          element={
+            <ProtectedRoute allowedRoles={['ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_VICE_PRINCIPAL', 'ROLE_ACCOUNTANT']}>
+              <AnalyticsPage />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Student Development Centre: All active roles */}
+        <Route 
+          path="development" 
+          element={
+            <ProtectedRoute allowedRoles={['ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_VICE_PRINCIPAL', 'ROLE_TEACHER', 'ROLE_STUDENT', 'ROLE_PARENT']}>
+              <StudentDevelopmentPage />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Digital Student ID Cards: All active roles */}
+        <Route 
+          path="id-cards" 
+          element={
+            <ProtectedRoute allowedRoles={['ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_VICE_PRINCIPAL', 'ROLE_TEACHER', 'ROLE_STUDENT', 'ROLE_PARENT']}>
+              <StudentIdCardsPage />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Digital Certificates & Honors: All active roles */}
+        <Route 
+          path="certificates" 
+          element={
+            <ProtectedRoute allowedRoles={['ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_VICE_PRINCIPAL', 'ROLE_TEACHER', 'ROLE_STUDENT', 'ROLE_PARENT']}>
+              <CertificatesPage />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Support & Complaint Centre: All active roles */}
+        <Route 
+          path="support" 
+          element={
+            <ProtectedRoute allowedRoles={['ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_VICE_PRINCIPAL', 'ROLE_TEACHER', 'ROLE_STUDENT', 'ROLE_PARENT', 'ROLE_ACCOUNTANT']}>
+              <SupportCentrePage />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* System Integrations Console: Leadership */}
+        <Route 
+          path="integrations" 
+          element={
+            <ProtectedRoute allowedRoles={['ROLE_SUPER_ADMIN', 'ROLE_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL']}>
+              <IntegrationsPage />
             </ProtectedRoute>
           } 
         />

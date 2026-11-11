@@ -107,4 +107,15 @@ declare module 'lucide-react' {
   export const Unlock: LucideIcon;
   export const UserCheck: LucideIcon;
   export const Database: LucideIcon;
+  export const Bot: LucideIcon;
+  export const Trophy: LucideIcon;
+  export const Contact: LucideIcon;
+  export const Cpu: LucideIcon;
+  export const QrCode: LucideIcon;
+  export const HeartHandshake: LucideIcon;
+  export const Medal: LucideIcon;
+  export const FileBadge: LucideIcon;
+  export const RotateCcw: LucideIcon;
+  export const Paperclip: LucideIcon;
+  export const ArrowUpRight: LucideIcon;
 }

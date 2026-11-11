@@ -14,6 +14,12 @@ import {
   Settings,
   Briefcase,
   FileSpreadsheet,
+  Trophy,
+  Contact,
+  FileCheck,
+  HelpCircle,
+  Activity,
+  Cpu,
   X
 } from 'lucide-react';
 
@@ -136,6 +142,40 @@ export const Sidebar: React.FC<SidebarProps> = ({
       ],
     },
     {
+      title: 'Student Growth & Identity',
+      items: [
+        { 
+          label: isStudent ? 'My Milestones & Growth' : (isParent ? 'Child Development' : 'Student Development'), 
+          path: '/development', 
+          icon: Trophy, 
+          roles: ['ALL'] 
+        },
+        { 
+          label: isStudent ? 'My Digital ID Card' : (isParent ? 'Child ID Card' : 'Student ID Cards'), 
+          path: '/id-cards', 
+          icon: Contact, 
+          roles: ['ALL'] 
+        },
+        { 
+          label: isStudent ? 'My Certificates' : (isParent ? 'Child Certificates' : 'Digital Certificates'), 
+          path: '/certificates', 
+          icon: FileCheck, 
+          roles: ['ALL'] 
+        },
+      ],
+    },
+    {
+      title: 'Support & Helpdesk',
+      items: [
+        { 
+          label: isStudent ? 'Help & Support' : (isParent ? 'Support & Inquiries' : 'Support Centre'), 
+          path: '/support', 
+          icon: HelpCircle, 
+          roles: ['ALL'] 
+        },
+      ],
+    },
+    {
       title: 'Data Management',
       items: [
         { 
@@ -150,10 +190,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
       title: 'Institutional Control',
       items: [
         { 
-          label: 'Reports & Analytics', 
+          label: 'Management Analytics', 
+          path: '/analytics', 
+          icon: Activity, 
+          roles: ['ROLE_SUPER_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_VICE_PRINCIPAL', 'ROLE_ACCOUNTANT'] 
+        },
+        { 
+          label: 'Reports & Export', 
           path: '/reports', 
           icon: BarChart3, 
           roles: ['ROLE_SUPER_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_ACCOUNTANT'] 
+        },
+        { 
+          label: 'System Integrations', 
+          path: '/integrations', 
+          icon: Cpu, 
+          roles: ['ROLE_SUPER_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL'] 
         },
         { 
           label: 'School Settings', 

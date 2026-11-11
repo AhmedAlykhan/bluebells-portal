@@ -7,6 +7,7 @@ import { LoginPage } from '../../pages/LoginPage';
 import { SchoolProfile } from '../../types';
 import { apiClient } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
+import { SchoolAssistantWidget } from '../assistant/SchoolAssistantWidget';
 
 export const AppLayout: React.FC = () => {
   const [profile, setProfile] = useState<SchoolProfile>();
@@ -68,6 +69,7 @@ export const AppLayout: React.FC = () => {
 
       <div className="print:hidden">
         <Footer schoolProfile={profile} />
+        <SchoolAssistantWidget />
       </div>
     </div>
   );
