@@ -116,7 +116,8 @@ export const CertificatesPage: React.FC = () => {
     if (canIssue) {
       apiClient.get('/students')
         .then(res => {
-          if (res.data?.data) setStudents(res.data.data);
+          const list = Array.isArray(res.data?.data) ? res.data.data : (res.data?.data?.content || []);
+          setStudents(list);
         })
         .catch(err => console.error(err));
     }

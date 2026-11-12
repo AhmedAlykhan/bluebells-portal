@@ -43,6 +43,8 @@ export const StudentIdCardsPage: React.FC = () => {
   const { user } = useAuth();
   const roles = user?.roles || [];
   const isStaff = roles.some(r => ['ROLE_SUPER_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_VICE_PRINCIPAL', 'ROLE_TEACHER'].includes(r));
+  const isParent = roles.includes('ROLE_PARENT');
+  const isStudent = roles.includes('ROLE_STUDENT');
 
   const [selectedCard, setSelectedCard] = useState<StudentIdCardDto | null>(null);
   const [students, setStudents] = useState<any[]>([]);
@@ -54,34 +56,62 @@ export const StudentIdCardsPage: React.FC = () => {
   const [activeSide, setActiveSide] = useState<'front' | 'back'>('front');
 
   useEffect(() => {
+    setLoading(true);
     if (isStaff) {
       apiClient.get('/students')
         .then(res => {
-          if (res.data?.data) {
-            setStudents(res.data.data);
-            if (res.data.data.length > 0) {
-              setSelectedStudentId(res.data.data[0].id);
-            }
+          const list = Array.isArray(res.data?.data) ? res.data.data : (res.data?.data?.content || []);
+          setStudents(list);
+          if (list.length > 0) {
+            setSelectedStudentId(list[0].id);
+          } else {
+            setLoading(false);
           }
         })
-        .catch(err => console.error(err));
-    } else {
-      apiClient.get('/auth/me')
+        .catch(err => {
+          console.error(err);
+          setLoading(false);
+        });
+    } else if (isParent) {
+      apiClient.get('/guardians/my-children')
         .then(res => {
-          const u = res.data?.data;
-          if (u?.studentId) {
-            setSelectedStudentId(u.studentId);
-          } else if (u?.linkedStudents && u.linkedStudents.length > 0) {
-            setStudents(u.linkedStudents);
-            setSelectedStudentId(u.linkedStudents[0].id);
+          const list = Array.isArray(res.data?.data) ? res.data.data : [];
+          setStudents(list);
+          if (list.length > 0) {
+            setSelectedStudentId(list[0].id);
+          } else {
+            setLoading(false);
           }
         })
-        .catch(err => console.error(err));
+        .catch(err => {
+          console.error(err);
+          setLoading(false);
+        });
+    } else if (isStudent) {
+      apiClient.get('/students/me')
+        .then(res => {
+          const st = res.data?.data;
+          if (st?.id) {
+            setStudents([st]);
+            setSelectedStudentId(st.id);
+          } else {
+            setLoading(false);
+          }
+        })
+        .catch(err => {
+          console.error(err);
+          setLoading(false);
+        });
+    } else {
+      setLoading(false);
     }
-  }, [isStaff]);
+  }, [isStaff, isParent, isStudent]);
 
   const fetchCard = () => {
-    if (!selectedStudentId) return;
+    if (!selectedStudentId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     apiClient.get(`/id-cards/students/${selectedStudentId}`)
       .then(res => {
@@ -189,7 +219,7 @@ export const StudentIdCardsPage: React.FC = () => {
             >
               {students.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.fullName || `${s.firstName} ${s.lastName}`} ({s.admissionNumber})
+                  {s.fullName || `${s.firstName || ''} ${s.lastName || ''}`.trim() || `Student #${s.id}`} {s.admissionNumber ? `(${s.admissionNumber})` : ''}
                 </option>
               ))}
             </select>

@@ -109,16 +109,24 @@ export const SupportCentrePage: React.FC = () => {
   useEffect(() => {
     fetchTickets();
 
-    // Fetch linked students if parent
-    apiClient.get('/auth/me')
-      .then(res => {
-        const u = res.data?.data;
-        if (u?.linkedStudents) {
-          setStudents(u.linkedStudents);
-        }
-      })
-      .catch(err => console.error(err));
-  }, [filterCategory, filterStatus]);
+    // Fetch linked students if parent or student
+    if (user?.roles?.includes('ROLE_PARENT')) {
+      apiClient.get('/guardians/my-children')
+        .then(res => {
+          const list = Array.isArray(res.data?.data) ? res.data.data : [];
+          setStudents(list);
+        })
+        .catch(err => console.error(err));
+    } else if (user?.roles?.includes('ROLE_STUDENT')) {
+      apiClient.get('/students/me')
+        .then(res => {
+          if (res.data?.data) {
+            setStudents([res.data.data]);
+          }
+        })
+        .catch(err => console.error(err));
+    }
+  }, [filterCategory, filterStatus, user?.roles]);
 
   const handleCreateTicket = async (e: React.FormEvent) => {
     e.preventDefault();
