@@ -63,13 +63,9 @@ public class StudentIdCardService {
     public StudentIdCardDto getActiveCardForStudent(Long studentId) {
         verifyReadAccessForStudent(studentId);
 
-        StudentIdCard card = cardRepository.findByStudentIdAndStatus(studentId, "ACTIVE")
-                .orElseGet(() -> {
-                    // Auto-generate if enrolled
-                    return generateCardInternal(studentId, null);
-                });
-
-        return mapToDto(card);
+        return cardRepository.findByStudentIdAndStatus(studentId, "ACTIVE")
+                .map(this::mapToDto)
+                .orElse(null);
     }
 
     @Transactional
@@ -88,6 +84,28 @@ public class StudentIdCardService {
             Student s = e.getStudent();
             StudentIdCard card = cardRepository.findByStudentIdAndStatus(s.getId(), "ACTIVE")
                     .orElseGet(() -> generateCardInternal(s.getId(), sessionId));
+            results.add(mapToDto(card));
+        }
+        return results;
+    }
+
+    @Transactional
+    public List<StudentIdCardDto> bulkGenerateAll(Long sessionId) {
+        AcademicSession session;
+        if (sessionId != null) {
+            session = sessionRepository.findById(sessionId)
+                    .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Academic Session not found"));
+        } else {
+            session = sessionRepository.findByCurrentTrue()
+                    .orElseGet(() -> sessionRepository.findAll().stream().findFirst()
+                            .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "No active academic session found")));
+        }
+
+        List<Student> students = studentRepository.findAll();
+        List<StudentIdCardDto> results = new ArrayList<>();
+        for (Student s : students) {
+            StudentIdCard card = cardRepository.findByStudentIdAndStatus(s.getId(), "ACTIVE")
+                    .orElseGet(() -> generateCardInternal(s.getId(), session.getId()));
             results.add(mapToDto(card));
         }
         return results;
@@ -166,13 +184,21 @@ public class StudentIdCardService {
                     .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Academic Session not found"));
         } else {
             session = sessionRepository.findByCurrentTrue()
-                    .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "No active academic session"));
+                    .orElseGet(() -> sessionRepository.findAll().stream().findFirst()
+                            .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "No active academic session found")));
+        }
+
+        String baseCardNumber = "IDC-" + LocalDate.now().getYear() + "-" + String.format("%04d", student.getId());
+        String cardNumber = baseCardNumber;
+        int suffix = 1;
+        while (cardRepository.findByCardNumber(cardNumber).isPresent()) {
+            cardNumber = baseCardNumber + "-" + suffix++;
         }
 
         StudentIdCard card = new StudentIdCard();
         card.setStudent(student);
         card.setAcademicSession(session);
-        card.setCardNumber("IDC-" + LocalDate.now().getYear() + "-" + String.format("%04d", student.getId()));
+        card.setCardNumber(cardNumber);
         card.setIssueDate(LocalDate.now());
         card.setExpiryDate(session.getEndDate() != null ? session.getEndDate() : LocalDate.now().plusYears(1));
         card.setStatus("ACTIVE");

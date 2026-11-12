@@ -51,6 +51,8 @@ export const StudentIdCardsPage: React.FC = () => {
   const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const [bulkGenerating, setBulkGenerating] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [showReissueModal, setShowReissueModal] = useState(false);
   const [reissueReason, setReissueReason] = useState('LOST');
   const [activeSide, setActiveSide] = useState<'front' | 'back'>('front');
@@ -137,23 +139,56 @@ export const StudentIdCardsPage: React.FC = () => {
   const handleGenerateCard = async () => {
     if (!selectedStudentId) return;
     setGenerating(true);
+    setFeedbackMessage(null);
     try {
       const res = await apiClient.post('/id-cards/generate', {
         studentId: selectedStudentId
       });
       if (res.data?.data) {
         setSelectedCard(res.data.data);
+        setFeedbackMessage({
+          type: 'success',
+          text: `Official ID Card (${res.data.data.cardNumber}) minted successfully for ${res.data.data.studentName}!`
+        });
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to generate student ID card.');
+      setFeedbackMessage({
+        type: 'error',
+        text: err.response?.data?.message || 'Failed to generate student ID card.'
+      });
     } finally {
       setGenerating(false);
+    }
+  };
+
+  const handleBulkGenerateAll = async () => {
+    if (!confirm('Generate official student ID cards for all students across the school who do not have an active badge yet?')) {
+      return;
+    }
+    setBulkGenerating(true);
+    setFeedbackMessage(null);
+    try {
+      const res = await apiClient.post('/id-cards/generate-all');
+      const count = Array.isArray(res.data?.data) ? res.data.data.length : 0;
+      setFeedbackMessage({
+        type: 'success',
+        text: `Bulk generation complete! Processed official ID cards for ${count} students.`
+      });
+      fetchCard();
+    } catch (err: any) {
+      setFeedbackMessage({
+        type: 'error',
+        text: err.response?.data?.message || 'Failed to bulk generate student ID cards.'
+      });
+    } finally {
+      setBulkGenerating(false);
     }
   };
 
   const handleReissueCard = async () => {
     if (!selectedCard) return;
     setGenerating(true);
+    setFeedbackMessage(null);
     try {
       const res = await apiClient.post(`/id-cards/${selectedCard.id}/reissue`, {
         reason: reissueReason
@@ -161,9 +196,16 @@ export const StudentIdCardsPage: React.FC = () => {
       if (res.data?.data) {
         setSelectedCard(res.data.data);
         setShowReissueModal(false);
+        setFeedbackMessage({
+          type: 'success',
+          text: `ID card reissued successfully (New Card: ${res.data.data.cardNumber}, Reissue #${res.data.data.reissueCount}).`
+        });
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to reissue student ID card.');
+      setFeedbackMessage({
+        type: 'error',
+        text: err.response?.data?.message || 'Failed to reissue student ID card.'
+      });
     } finally {
       setGenerating(false);
     }
@@ -184,7 +226,7 @@ export const StudentIdCardsPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 self-start md:self-auto">
+        <div className="flex items-center gap-2 self-start md:self-auto flex-wrap">
           {selectedCard && (
             <button
               onClick={() => window.print()}
@@ -204,25 +246,69 @@ export const StudentIdCardsPage: React.FC = () => {
               <span>Reissue Card</span>
             </button>
           )}
+
+          {isStaff && (
+            <button
+              onClick={handleBulkGenerateAll}
+              disabled={bulkGenerating}
+              className="flex items-center gap-1.5 px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-colors shadow-sm disabled:opacity-50"
+              title="Generate active ID cards for all students across the school"
+            >
+              {bulkGenerating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+              <span>{bulkGenerating ? 'Generating All...' : 'Batch Mint All Cards'}</span>
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Feedback Banner */}
+      {feedbackMessage && (
+        <div className={`p-4 rounded-xl text-xs font-bold flex items-center justify-between border ${
+          feedbackMessage.type === 'success' 
+            ? 'bg-emerald-50 text-emerald-900 border-emerald-200' 
+            : 'bg-rose-50 text-rose-900 border-rose-200'
+        } print:hidden`}>
+          <span>{feedbackMessage.text}</span>
+          <button 
+            onClick={() => setFeedbackMessage(null)} 
+            className="text-slate-400 hover:text-slate-600 font-bold ml-4 text-sm"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* Selector Toolbar */}
       <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4 print:hidden">
         <div className="flex items-center gap-3">
           <span className="text-xs font-bold text-slate-600">Select Student:</span>
           {students.length > 0 ? (
-            <select
-              value={selectedStudentId || ''}
-              onChange={(e) => setSelectedStudentId(Number(e.target.value))}
-              className="text-xs font-bold bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-800"
-            >
-              {students.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.fullName || `${s.firstName || ''} ${s.lastName || ''}`.trim() || `Student #${s.id}`} {s.admissionNumber ? `(${s.admissionNumber})` : ''}
-                </option>
-              ))}
-            </select>
+            <div className="flex items-center gap-2">
+              <select
+                value={selectedStudentId || ''}
+                onChange={(e) => {
+                  setSelectedStudentId(Number(e.target.value));
+                  setFeedbackMessage(null);
+                }}
+                className="text-xs font-bold bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-500 text-slate-800"
+              >
+                {students.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.fullName || `${s.firstName || ''} ${s.lastName || ''}`.trim() || `Student #${s.id}`} {s.admissionNumber ? `(${s.admissionNumber})` : ''}
+                  </option>
+                ))}
+              </select>
+              {selectedCard ? (
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+                  <CheckCircle className="w-3 h-3 text-emerald-600" />
+                  Active Badge
+                </span>
+              ) : !loading ? (
+                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
+                  No Badge Yet
+                </span>
+              ) : null}
+            </div>
           ) : (
             <span className="text-xs font-bold text-brand-900 bg-brand-50 px-3 py-1 rounded-md">
               Student ID #{selectedStudentId || 'Active Profile'}

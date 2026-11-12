@@ -34,7 +34,7 @@ public class StudentIdCardController {
     }
 
     @PostMapping("/generate")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'VICE_PRINCIPAL') or hasAuthority('STUDENT_ID_GENERATE')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'VICE_PRINCIPAL', 'TEACHER') or hasAuthority('STUDENT_ID_GENERATE')")
     @Operation(summary = "Generate ID card for an individual student")
     public ResponseEntity<ApiResponse<StudentIdCardDto>> generateCard(@Valid @RequestBody GenerateIdCardRequest req) {
         StudentIdCardDto card = cardService.generateOrGetCard(req);
@@ -42,7 +42,7 @@ public class StudentIdCardController {
     }
 
     @PostMapping("/generate-bulk")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'VICE_PRINCIPAL') or hasAuthority('STUDENT_ID_GENERATE')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'VICE_PRINCIPAL', 'TEACHER') or hasAuthority('STUDENT_ID_GENERATE')")
     @Operation(summary = "Bulk generate ID cards for a section")
     public ResponseEntity<ApiResponse<List<StudentIdCardDto>>> bulkGenerate(
             @RequestParam Long sectionId,
@@ -51,8 +51,17 @@ public class StudentIdCardController {
         return ResponseEntity.ok(ApiResponse.success("Bulk ID cards generated", cards));
     }
 
+    @PostMapping("/generate-all")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'VICE_PRINCIPAL', 'TEACHER') or hasAuthority('STUDENT_ID_GENERATE')")
+    @Operation(summary = "Bulk generate ID cards for all students across school")
+    public ResponseEntity<ApiResponse<List<StudentIdCardDto>>> bulkGenerateAll(
+            @RequestParam(required = false) Long sessionId) {
+        List<StudentIdCardDto> cards = cardService.bulkGenerateAll(sessionId);
+        return ResponseEntity.ok(ApiResponse.success("Generated ID cards for all students", cards));
+    }
+
     @PostMapping("/{cardId}/reissue")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'VICE_PRINCIPAL') or hasAuthority('STUDENT_ID_GENERATE')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'VICE_PRINCIPAL', 'TEACHER') or hasAuthority('STUDENT_ID_GENERATE')")
     @Operation(summary = "Reissue a student ID card with audit reason")
     public ResponseEntity<ApiResponse<StudentIdCardDto>> reissueCard(
             @PathVariable Long cardId,

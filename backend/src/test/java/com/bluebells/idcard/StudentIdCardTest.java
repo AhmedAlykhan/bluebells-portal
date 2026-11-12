@@ -236,4 +236,64 @@ public class StudentIdCardTest {
                 .andExpect(jsonPath("$.data.message").value(containsString("Bluebells")))
                 .andExpect(jsonPath("$.data.status").value("ACTIVE"));
     }
+
+    @Test
+    @DisplayName("Teacher can generate student ID card")
+    void testTeacherCanGenerateStudentIdCard() throws Exception {
+        Role teacherRole = roleRepository.findByName("ROLE_TEACHER")
+                .orElseGet(() -> roleRepository.save(new Role("ROLE_TEACHER", "Teacher")));
+
+        User teacher = userRepository.findByUsername("idcard_teacher_test").orElseGet(() -> {
+            User u = new User();
+            u.setUsername("idcard_teacher_test");
+            u.setEmail("idcard_teacher@bluebells.test");
+            u.setFullName("Sir Ahmed Khan");
+            u.setPasswordHash(passwordEncoder.encode("TestPass@123"));
+            u.setStatus("ACTIVE");
+            u.setRoles(new HashSet<>(Set.of(teacherRole)));
+            return userRepository.save(u);
+        });
+        String teacherToken = jwtTokenProvider.generateToken(UserPrincipal.create(teacher));
+
+        GenerateIdCardRequest req = new GenerateIdCardRequest();
+        req.setStudentId(studentId);
+        req.setAcademicSessionId(sessionId);
+
+        mockMvc.perform(post("/api/v1/id-cards/generate")
+                        .header("Authorization", "Bearer " + teacherToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.studentName").value("Zain Abbas"));
+    }
+
+    @Test
+    @DisplayName("Get active card when none exists returns 200 with data null rather than crashing")
+    void testGetActiveCardWhenNoneExistsReturnsNull() throws Exception {
+        // Create an uncarded student
+        Student uncarded = studentRepository.save(new Student());
+        uncarded.setAdmissionNumber("BSS-TEMP-999");
+        uncarded.setFirstName("Farhan");
+        uncarded.setLastName("Ali");
+        uncarded.setDateOfBirth(LocalDate.of(2012, 1, 1));
+        uncarded.setGender("MALE");
+        uncarded.setStatus("ACTIVE");
+        uncarded = studentRepository.save(uncarded);
+
+        mockMvc.perform(get("/api/v1/id-cards/students/" + uncarded.getId())
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("Bulk generate all cards endpoint generates cards across students")
+    void testBulkGenerateAllCards() throws Exception {
+        mockMvc.perform(post("/api/v1/id-cards/generate-all")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data").isArray());
+    }
 }
