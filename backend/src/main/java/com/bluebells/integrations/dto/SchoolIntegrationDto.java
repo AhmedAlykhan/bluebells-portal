@@ -42,4 +42,21 @@ public class SchoolIntegrationDto {
 
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+
+    public String getIntegrationCode() { return integrationKey; }
+
+    public String getProvider() {
+        if ("PUSH_NOTIFICATIONS".equalsIgnoreCase(integrationKey)) return "Firebase Cloud Messaging (FCM)";
+        if ("SMS_GATEWAY".equalsIgnoreCase(integrationKey)) return "Direct Telco SMS Gateway (Jazz, Telenor, Zong, Ufone)";
+        if ("WHATSAPP_BUSINESS".equalsIgnoreCase(integrationKey)) return "Meta WhatsApp Business Cloud API";
+        if ("ONLINE_FEE_PAYMENT".equalsIgnoreCase(integrationKey)) return "1Link 1Bill & KuickPay Digital Wallets";
+        if ("GPS_TRANSPORT".equalsIgnoreCase(integrationKey)) return "Teltonika / Traccar Fleet Telemetry";
+        if ("QR_ATTENDANCE".equalsIgnoreCase(integrationKey)) return "ZKTeco & Hikvision Hardware Access Controller";
+        if ("EXTERNAL_CALENDAR".equalsIgnoreCase(integrationKey)) return "Google Workspace & Apple iCal Sync";
+        return "Institutional Cloud Connector";
+    }
+
+    public Instant getLastTestedAt() { return lastHeartbeat; }
+
+    public String getLastTestStatus() { return status; }
 }

@@ -41,7 +41,7 @@ public class SchoolIntegrationController {
     }
 
     @PutMapping("/{key}")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN') or hasAuthority('INTEGRATIONS_MANAGE')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'VICE_PRINCIPAL') or hasAuthority('INTEGRATIONS_MANAGE')")
     @Operation(summary = "Update integration status or credentials")
     public ResponseEntity<ApiResponse<SchoolIntegrationDto>> updateIntegration(
             @PathVariable String key,
