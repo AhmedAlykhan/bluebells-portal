@@ -193,13 +193,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
           label: 'Management Analytics', 
           path: '/analytics', 
           icon: Activity, 
-          roles: ['ROLE_SUPER_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_VICE_PRINCIPAL', 'ROLE_ACCOUNTANT'] 
+          roles: ['ROLE_SUPER_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_VICE_PRINCIPAL'] 
         },
         { 
-          label: 'Reports & Export', 
+          label: 'Reports & Analytics', 
           path: '/reports', 
           icon: BarChart3, 
-          roles: ['ROLE_SUPER_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_ACCOUNTANT'] 
+          roles: ['ROLE_SUPER_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_VICE_PRINCIPAL', 'ROLE_ACCOUNTANT'] 
         },
         { 
           label: 'System Integrations', 

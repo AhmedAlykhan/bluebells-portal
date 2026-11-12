@@ -34,4 +34,6 @@ public class TestIntegrationResponse {
 
     public Instant getTestTimestamp() { return testTimestamp; }
     public void setTestTimestamp(Instant testTimestamp) { this.testTimestamp = testTimestamp; }
+
+    public Instant getTimestamp() { return testTimestamp; }
 }

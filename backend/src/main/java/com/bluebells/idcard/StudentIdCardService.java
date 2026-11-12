@@ -177,7 +177,7 @@ public class StudentIdCardService {
         card.setExpiryDate(session.getEndDate() != null ? session.getEndDate() : LocalDate.now().plusYears(1));
         card.setStatus("ACTIVE");
         card.setReissueCount(0);
-        card.setQrVerificationToken("BSS-ID-TOKEN-" + student.getAdmissionNumber() + "-" + UUID.randomUUID().toString().substring(0, 8));
+        card.setQrVerificationToken("BSS-ID-TOKEN-" + UUID.randomUUID().toString());
 
         return cardRepository.save(card);
     }

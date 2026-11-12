@@ -23,6 +23,9 @@ import com.bluebells.students.Student;
 import com.bluebells.students.StudentRepository;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -695,10 +698,9 @@ public class AnalyticsService {
     // =========================================================================
     @Transactional(readOnly = true)
     public byte[] exportAnalyticsToExcel(AnalyticsFilterDto filter) throws IOException {
-        ManagementAnalyticsDto data = getFullManagementAnalytics(filter);
+        boolean accountantOnly = isAccountantOnly();
 
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            // Cell Styles
             CellStyle headerStyle = workbook.createCellStyle();
             Font font = workbook.createFont();
             font.setBold(true);
@@ -707,60 +709,161 @@ public class AnalyticsService {
             headerStyle.setFillForegroundColor(IndexedColors.DARK_BLUE.getIndex());
             headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
-            // Sheet 1: Executive KPI Summary
-            Sheet summarySheet = workbook.createSheet("Executive Overview");
-            Row r0 = summarySheet.createRow(0);
-            r0.createCell(0).setCellValue("Metric");
-            r0.createCell(1).setCellValue("Value");
-            r0.getCell(0).setCellStyle(headerStyle);
-            r0.getCell(1).setCellStyle(headerStyle);
+            if (accountantOnly) {
+                // Restricted finance-only workbook for Accountants
+                FinancialAnalyticsDto fin = getFinancialAnalytics(filter);
 
-            int rowIdx = 1;
-            createRow(summarySheet, rowIdx++, "Total Active Students", String.valueOf(data.getStudentAnalytics().getTotalActiveStudents()));
-            createRow(summarySheet, rowIdx++, "Today Attendance Rate", data.getAttendanceAnalytics().getTodayAttendanceRate() + "%");
-            createRow(summarySheet, rowIdx++, "Monthly Attendance Rate", data.getAttendanceAnalytics().getMonthlyAttendanceRate() + "%");
-            createRow(summarySheet, rowIdx++, "Overall Academic Average", data.getAcademicAnalytics().getOverallAveragePercentage() + "%");
-            createRow(summarySheet, rowIdx++, "Total Billed Fees (PKR)", data.getFinancialAnalytics().getTotalBilled().toString());
-            createRow(summarySheet, rowIdx++, "Total Collected Fees (PKR)", data.getFinancialAnalytics().getTotalCollected().toString());
-            createRow(summarySheet, rowIdx++, "Fee Collection Rate", data.getFinancialAnalytics().getCollectionRate() + "%");
-            createRow(summarySheet, rowIdx++, "Total Teaching Staff", String.valueOf(data.getStaffAnalytics().getTotalTeachersCount()));
-            createRow(summarySheet, rowIdx++, "Active LMS Courses", String.valueOf(data.getLmsAnalytics().getActiveCoursesCount()));
+                Sheet summarySheet = workbook.createSheet("Executive Overview");
+                Row r0 = summarySheet.createRow(0);
+                r0.createCell(0).setCellValue("Financial Metric");
+                r0.createCell(1).setCellValue("Value (PKR / %)");
+                r0.getCell(0).setCellStyle(headerStyle);
+                r0.getCell(1).setCellStyle(headerStyle);
 
-            // Sheet 2: Class Strength
-            Sheet studentSheet = workbook.createSheet("Class Strength");
-            Row rS0 = studentSheet.createRow(0);
-            rS0.createCell(0).setCellValue("Class / Grade");
-            rS0.createCell(1).setCellValue("Student Count");
-            rS0.getCell(0).setCellStyle(headerStyle);
-            rS0.getCell(1).setCellStyle(headerStyle);
+                int rIdx = 1;
+                createRow(summarySheet, rIdx++, "Report Generation Timestamp", java.time.LocalDateTime.now().toString());
+                createRow(summarySheet, rIdx++, "Classification", "Finance Administration — Confidential");
+                createRow(summarySheet, rIdx++, "Total Billed Fees (PKR)", fin.getTotalBilled().toString());
+                createRow(summarySheet, rIdx++, "Total Collected Revenue (PKR)", fin.getTotalCollected().toString());
+                createRow(summarySheet, rIdx++, "Outstanding Receivable Balance (PKR)", fin.getOutstandingBalance().toString());
+                createRow(summarySheet, rIdx++, "Collection Efficiency Rate", fin.getCollectionRate() + "%");
+                createRow(summarySheet, rIdx++, "Total Concessions & Scholarships (PKR)", fin.getDiscountsAndScholarships().toString());
 
-            rowIdx = 1;
-            for (CategoryCountDto c : data.getStudentAnalytics().getClassWiseStrength()) {
-                createRow(studentSheet, rowIdx++, c.getCategory(), String.valueOf(c.getCount()));
-            }
+                Sheet feeSheet = workbook.createSheet("Fee Ledger");
+                Row rF0 = feeSheet.createRow(0);
+                rF0.createCell(0).setCellValue("Class / Grade");
+                rF0.createCell(1).setCellValue("Billed (PKR)");
+                rF0.createCell(2).setCellValue("Collected (PKR)");
+                rF0.createCell(3).setCellValue("Outstanding (PKR)");
+                for (int i = 0; i < 4; i++) rF0.getCell(i).setCellStyle(headerStyle);
 
-            // Sheet 3: Financial Ledger
-            Sheet finSheet = workbook.createSheet("Class Collections");
-            Row rF0 = finSheet.createRow(0);
-            rF0.createCell(0).setCellValue("Class");
-            rF0.createCell(1).setCellValue("Billed (PKR)");
-            rF0.createCell(2).setCellValue("Collected (PKR)");
-            rF0.createCell(3).setCellValue("Outstanding (PKR)");
-            for (int i = 0; i < 4; i++) rF0.getCell(i).setCellStyle(headerStyle);
+                rIdx = 1;
+                for (ClassCollectionDto cc : fin.getClassWiseCollection()) {
+                    Row row = feeSheet.createRow(rIdx++);
+                    row.createCell(0).setCellValue(cc.getClassName());
+                    row.createCell(1).setCellValue(cc.getBilledAmount().doubleValue());
+                    row.createCell(2).setCellValue(cc.getCollectedAmount().doubleValue());
+                    row.createCell(3).setCellValue(cc.getOutstandingAmount().doubleValue());
+                }
+            } else {
+                // Complete 6-sheet management intelligence workbook for Leadership
+                ManagementAnalyticsDto data = getFullManagementAnalytics(filter);
 
-            rowIdx = 1;
-            for (ClassCollectionDto cc : data.getFinancialAnalytics().getClassWiseCollection()) {
-                Row row = finSheet.createRow(rowIdx++);
-                row.createCell(0).setCellValue(cc.getClassName());
-                row.createCell(1).setCellValue(cc.getBilledAmount().doubleValue());
-                row.createCell(2).setCellValue(cc.getCollectedAmount().doubleValue());
-                row.createCell(3).setCellValue(cc.getOutstandingAmount().doubleValue());
+                // Sheet 1: Executive Summary
+                Sheet summarySheet = workbook.createSheet("Executive Overview");
+                Row r0 = summarySheet.createRow(0);
+                r0.createCell(0).setCellValue("Institutional Metric");
+                r0.createCell(1).setCellValue("Current Value");
+                r0.getCell(0).setCellStyle(headerStyle);
+                r0.getCell(1).setCellStyle(headerStyle);
+
+                int rowIdx = 1;
+                createRow(summarySheet, rowIdx++, "Report Timestamp", java.time.LocalDateTime.now().toString());
+                createRow(summarySheet, rowIdx++, "Campus", "Adjacent Autobahn Road, Unit 2, Latifabad, Hyderabad");
+                createRow(summarySheet, rowIdx++, "Total Active Students", String.valueOf(data.getStudentAnalytics().getTotalActiveStudents()));
+                createRow(summarySheet, rowIdx++, "New Admissions (Session)", String.valueOf(data.getStudentAnalytics().getNewAdmissionsCount()));
+                createRow(summarySheet, rowIdx++, "Student Withdrawals", String.valueOf(data.getStudentAnalytics().getWithdrawalsCount()));
+                createRow(summarySheet, rowIdx++, "Today Attendance Rate", data.getAttendanceAnalytics().getTodayAttendanceRate() + "%");
+                createRow(summarySheet, rowIdx++, "Monthly Attendance Rate", data.getAttendanceAnalytics().getMonthlyAttendanceRate() + "%");
+                createRow(summarySheet, rowIdx++, "Chronic Absentee Count", String.valueOf(data.getAttendanceAnalytics().getChronicAbsentees().size()));
+                createRow(summarySheet, rowIdx++, "Overall Academic Average", data.getAcademicAnalytics().getOverallAveragePercentage() + "%");
+                createRow(summarySheet, rowIdx++, "Students on Academic Support", String.valueOf(data.getAcademicAnalytics().getStudentsNeedingSupport().size()));
+                createRow(summarySheet, rowIdx++, "Total Billed Fees (PKR)", data.getFinancialAnalytics().getTotalBilled().toString());
+                createRow(summarySheet, rowIdx++, "Total Collected Fees (PKR)", data.getFinancialAnalytics().getTotalCollected().toString());
+                createRow(summarySheet, rowIdx++, "Fee Collection Rate", data.getFinancialAnalytics().getCollectionRate() + "%");
+                createRow(summarySheet, rowIdx++, "Outstanding Balance (PKR)", data.getFinancialAnalytics().getOutstandingBalance().toString());
+                createRow(summarySheet, rowIdx++, "Total Teaching Faculty", String.valueOf(data.getStaffAnalytics().getTotalTeachersCount()));
+                createRow(summarySheet, rowIdx++, "Active LMS Courses", String.valueOf(data.getLmsAnalytics().getActiveCoursesCount()));
+                createRow(summarySheet, rowIdx++, "Assignment Completion Rate", data.getLmsAnalytics().getAssignmentCompletionRate() + "%");
+
+                // Sheet 2: Student Demographics
+                Sheet studentSheet = workbook.createSheet("Student Demographics");
+                Row rS0 = studentSheet.createRow(0);
+                rS0.createCell(0).setCellValue("Class / Grade");
+                rS0.createCell(1).setCellValue("Enrolled Strength");
+                rS0.getCell(0).setCellStyle(headerStyle);
+                rS0.getCell(1).setCellStyle(headerStyle);
+
+                rowIdx = 1;
+                for (CategoryCountDto c : data.getStudentAnalytics().getClassWiseStrength()) {
+                    createRow(studentSheet, rowIdx++, c.getCategory(), String.valueOf(c.getCount()));
+                }
+
+                // Sheet 3: Attendance & Absences
+                Sheet attSheet = workbook.createSheet("Attendance & Absences");
+                Row rA0 = attSheet.createRow(0);
+                rA0.createCell(0).setCellValue("Student Name");
+                rA0.createCell(1).setCellValue("Admission Number");
+                rA0.createCell(2).setCellValue("Class / Section");
+                rA0.createCell(3).setCellValue("Days Absent");
+                rA0.createCell(4).setCellValue("Alert Status");
+                for (int i = 0; i < 5; i++) rA0.getCell(i).setCellStyle(headerStyle);
+
+                rowIdx = 1;
+                for (ChronicAbsenteeDto ca : data.getAttendanceAnalytics().getChronicAbsentees()) {
+                    Row row = attSheet.createRow(rowIdx++);
+                    row.createCell(0).setCellValue(ca.getStudentName());
+                    row.createCell(1).setCellValue(ca.getAdmissionNumber());
+                    row.createCell(2).setCellValue(ca.getClassName());
+                    row.createCell(3).setCellValue(ca.getTotalAbsences());
+                    row.createCell(4).setCellValue("Chronic Absenteeism Flag");
+                }
+
+                // Sheet 4: Academic Performance
+                Sheet acadSheet = workbook.createSheet("Academic Performance");
+                Row rAc0 = acadSheet.createRow(0);
+                rAc0.createCell(0).setCellValue("Subject");
+                rAc0.createCell(1).setCellValue("Class Average (%)");
+                rAc0.createCell(2).setCellValue("Passing Rate (%)");
+                for (int i = 0; i < 3; i++) rAc0.getCell(i).setCellStyle(headerStyle);
+
+                rowIdx = 1;
+                for (SubjectPerformanceDto sa : data.getAcademicAnalytics().getSubjectPerformance()) {
+                    Row row = acadSheet.createRow(rowIdx++);
+                    row.createCell(0).setCellValue(sa.getSubjectName());
+                    row.createCell(1).setCellValue(sa.getAverageMarks() != null ? sa.getAverageMarks().doubleValue() : 0.0);
+                    row.createCell(2).setCellValue(sa.getPassRate() != null ? sa.getPassRate().doubleValue() : 0.0);
+                }
+
+                // Sheet 5: Fee Ledger
+                Sheet finSheet = workbook.createSheet("Fee Ledger");
+                Row rF0 = finSheet.createRow(0);
+                rF0.createCell(0).setCellValue("Class / Grade");
+                rF0.createCell(1).setCellValue("Billed (PKR)");
+                rF0.createCell(2).setCellValue("Collected (PKR)");
+                rF0.createCell(3).setCellValue("Outstanding (PKR)");
+                for (int i = 0; i < 4; i++) rF0.getCell(i).setCellStyle(headerStyle);
+
+                rowIdx = 1;
+                for (ClassCollectionDto cc : data.getFinancialAnalytics().getClassWiseCollection()) {
+                    Row row = finSheet.createRow(rowIdx++);
+                    row.createCell(0).setCellValue(cc.getClassName());
+                    row.createCell(1).setCellValue(cc.getBilledAmount().doubleValue());
+                    row.createCell(2).setCellValue(cc.getCollectedAmount().doubleValue());
+                    row.createCell(3).setCellValue(cc.getOutstandingAmount().doubleValue());
+                }
+
+                // Sheet 6: LMS Engagement
+                Sheet lmsSheet = workbook.createSheet("LMS Engagement");
+                Row rL0 = lmsSheet.createRow(0);
+                rL0.createCell(0).setCellValue("LMS Indicator");
+                rL0.createCell(1).setCellValue("Count / Value");
+                rL0.getCell(0).setCellStyle(headerStyle);
+                rL0.getCell(1).setCellStyle(headerStyle);
+
+                rowIdx = 1;
+                createRow(lmsSheet, rowIdx++, "Active Published Courses", String.valueOf(data.getLmsAnalytics().getActiveCoursesCount()));
+                createRow(lmsSheet, rowIdx++, "Total Assignments Created", String.valueOf(data.getLmsAnalytics().getTotalAssignments()));
+                createRow(lmsSheet, rowIdx++, "Submissions Received", String.valueOf(data.getLmsAnalytics().getTotalSubmissions()));
+                createRow(lmsSheet, rowIdx++, "Assignment Completion Rate", data.getLmsAnalytics().getAssignmentCompletionRate() + "%");
+                createRow(lmsSheet, rowIdx++, "Digital Learning Resources Hosted", String.valueOf(data.getLmsAnalytics().getTotalResourcesCount()));
+                createRow(lmsSheet, rowIdx++, "Average Quiz / Evaluation Score", data.getLmsAnalytics().getAverageQuizScore() + "%");
             }
 
             // Autosize columns
             for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
                 Sheet s = workbook.getSheetAt(i);
-                for (int col = 0; col < 5; col++) {
+                for (int col = 0; col < 6; col++) {
                     s.autoSizeColumn(col);
                 }
             }
@@ -768,6 +871,19 @@ public class AnalyticsService {
             workbook.write(out);
             return out.toByteArray();
         }
+    }
+
+    private boolean isAccountantOnly() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) return false;
+        boolean hasAccountant = auth.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(a -> a.equals("ROLE_ACCOUNTANT"));
+        boolean hasLeadership = auth.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(a -> a.equals("ROLE_SUPER_ADMIN") || a.equals("ROLE_SCHOOL_ADMIN")
+                        || a.equals("ROLE_PRINCIPAL") || a.equals("ROLE_VICE_PRINCIPAL"));
+        return hasAccountant && !hasLeadership;
     }
 
     private void createRow(Sheet sheet, int rowNum, String col0, String col1) {

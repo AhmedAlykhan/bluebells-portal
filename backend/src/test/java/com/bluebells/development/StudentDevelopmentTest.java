@@ -31,6 +31,7 @@ import java.util.Set;
 
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -66,6 +67,7 @@ public class StudentDevelopmentTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    private String adminToken;
     private String teacherToken;
     private String parentToken;
     private String strangerParentToken;
@@ -74,10 +76,24 @@ public class StudentDevelopmentTest {
 
     @BeforeEach
     void setUp() {
+        Role adminRole = roleRepository.findByName("ROLE_SUPER_ADMIN")
+                .orElseGet(() -> roleRepository.save(new Role("ROLE_SUPER_ADMIN", "Super Admin")));
         Role teacherRole = roleRepository.findByName("ROLE_TEACHER")
                 .orElseGet(() -> roleRepository.save(new Role("ROLE_TEACHER", "Teacher")));
         Role parentRole = roleRepository.findByName("ROLE_PARENT")
                 .orElseGet(() -> roleRepository.save(new Role("ROLE_PARENT", "Parent")));
+
+        User admin = userRepository.findByUsername("dev_admin_test").orElseGet(() -> {
+            User u = new User();
+            u.setUsername("dev_admin_test");
+            u.setEmail("dev_admin@bluebells.test");
+            u.setFullName("Principal Huma Arif");
+            u.setPasswordHash(passwordEncoder.encode("TestPass@123"));
+            u.setStatus("ACTIVE");
+            u.setRoles(new HashSet<>(Set.of(adminRole)));
+            return userRepository.save(u);
+        });
+        adminToken = jwtTokenProvider.generateToken(UserPrincipal.create(admin));
 
         User teacher = userRepository.findByUsername("dev_teacher_test").orElseGet(() -> {
             User u = new User();
@@ -196,5 +212,36 @@ public class StudentDevelopmentTest {
                         .header("Authorization", "Bearer " + strangerParentToken)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("Leadership can officially verify a pending student development achievement")
+    void testLeadershipCanVerifyAchievement() throws Exception {
+        CreateDevelopmentRecordRequest req = new CreateDevelopmentRecordRequest();
+        req.setStudentId(linkedStudentId);
+        req.setCategory("COMPETITION");
+        req.setTitle("Sindh Science Fair First Prize");
+        req.setDescription("Robotics innovation project model.");
+        req.setAchievementDate(LocalDate.of(2026, 3, 5));
+        req.setPositionOrAward("1st Position");
+        req.setLevel("PROVINCIAL");
+        req.setSkillsAcquired("Robotics, Circuit Design");
+
+        org.springframework.test.web.servlet.MvcResult res = mockMvc.perform(post("/api/v1/development/records")
+                        .header("Authorization", "Bearer " + teacherToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.status").value("PENDING_REVIEW"))
+                .andReturn();
+
+        long recId = objectMapper.readTree(res.getResponse().getContentAsString()).get("data").get("id").asLong();
+
+        // Admin verifies record
+        mockMvc.perform(patch("/api/v1/development/records/" + recId + "/verify")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.status").value("VERIFIED"));
     }
 }

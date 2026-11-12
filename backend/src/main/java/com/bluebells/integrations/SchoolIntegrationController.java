@@ -50,7 +50,7 @@ public class SchoolIntegrationController {
         return ResponseEntity.ok(ApiResponse.success("Integration updated", updated));
     }
 
-    @PostMapping("/{key}/test")
+    @PostMapping({"/{key}/test", "/{key}/ping"})
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL') or hasAuthority('INTEGRATIONS_MANAGE')")
     @Operation(summary = "Test integration gateway connectivity and heartbeat")
     public ResponseEntity<ApiResponse<TestIntegrationResponse>> testIntegration(@PathVariable String key) {

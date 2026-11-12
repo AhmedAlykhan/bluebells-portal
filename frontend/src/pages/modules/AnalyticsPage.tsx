@@ -14,9 +14,16 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { apiClient } from '../../api/client';
+import { useAuth } from '../../context/AuthContext';
 
 export const AnalyticsPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'students' | 'attendance' | 'academics' | 'financial' | 'lms' | 'staff'>('overview');
+  const { user } = useAuth();
+  const isLeadership = user?.roles?.some(r => ['ROLE_SUPER_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_VICE_PRINCIPAL'].includes(r));
+  const isAccountantOnly = user?.roles?.includes('ROLE_ACCOUNTANT') && !isLeadership;
+
+  const [activeTab, setActiveTab] = useState<'overview' | 'students' | 'attendance' | 'academics' | 'financial' | 'lms' | 'staff'>(
+    isAccountantOnly ? 'financial' : 'overview'
+  );
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [analyticsData, setAnalyticsData] = useState<any>(null);
@@ -29,10 +36,15 @@ export const AnalyticsPage: React.FC = () => {
     if (startDate) params.startDate = startDate;
     if (endDate) params.endDate = endDate;
 
-    apiClient.get('/analytics/overview', { params })
+    const endpoint = isAccountantOnly ? '/analytics/financial' : '/analytics/overview';
+    apiClient.get(endpoint, { params })
       .then(res => {
         if (res.data?.data) {
-          setAnalyticsData(res.data.data);
+          if (isAccountantOnly) {
+            setAnalyticsData({ financialAnalytics: res.data.data });
+          } else {
+            setAnalyticsData(res.data.data);
+          }
         }
       })
       .catch(err => {
@@ -42,6 +54,12 @@ export const AnalyticsPage: React.FC = () => {
         setLoading(false);
       });
   };
+
+  useEffect(() => {
+    if (isAccountantOnly) {
+      setActiveTab('financial');
+    }
+  }, [isAccountantOnly]);
 
   useEffect(() => {
     fetchAnalytics();
@@ -166,7 +184,7 @@ export const AnalyticsPage: React.FC = () => {
           { id: 'financial', label: 'Financial & Fee Ledger', icon: CreditCard },
           { id: 'lms', label: 'LMS & Coursework Engagement', icon: BookOpen },
           { id: 'staff', label: 'Faculty & Workload', icon: Briefcase },
-        ].map((tab) => {
+        ].filter(tab => !isAccountantOnly || tab.id === 'financial').map((tab) => {
           const Icon = tab.icon;
           const active = activeTab === tab.id;
           return (

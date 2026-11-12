@@ -26,7 +26,7 @@ public class AnalyticsController {
     }
 
     @GetMapping("/overview")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'ACCOUNTANT') or hasAuthority('ANALYTICS_VIEW')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'VICE_PRINCIPAL')")
     @Operation(summary = "Get comprehensive school management analytics across all domains")
     public ResponseEntity<ApiResponse<ManagementAnalyticsDto>> getFullAnalytics(AnalyticsFilterDto filter) {
         ManagementAnalyticsDto dto = analyticsService.getFullManagementAnalytics(filter);
@@ -34,7 +34,7 @@ public class AnalyticsController {
     }
 
     @GetMapping("/students")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL') or hasAuthority('ANALYTICS_VIEW')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'VICE_PRINCIPAL')")
     @Operation(summary = "Get student demographics, strength, and session comparison analytics")
     public ResponseEntity<ApiResponse<StudentAnalyticsDto>> getStudentAnalytics(AnalyticsFilterDto filter) {
         StudentAnalyticsDto dto = analyticsService.getStudentAnalytics(filter);
@@ -42,7 +42,7 @@ public class AnalyticsController {
     }
 
     @GetMapping("/attendance")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL') or hasAuthority('ANALYTICS_VIEW')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'VICE_PRINCIPAL')")
     @Operation(summary = "Get attendance rates, absenteeism trends, and chronic absentees")
     public ResponseEntity<ApiResponse<AttendanceAnalyticsDto>> getAttendanceAnalytics(AnalyticsFilterDto filter) {
         AttendanceAnalyticsDto dto = analyticsService.getAttendanceAnalytics(filter);
@@ -50,7 +50,7 @@ public class AnalyticsController {
     }
 
     @GetMapping("/academics")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL') or hasAuthority('ANALYTICS_VIEW')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'VICE_PRINCIPAL')")
     @Operation(summary = "Get examination performance, class averages, and academic support alerts")
     public ResponseEntity<ApiResponse<AcademicAnalyticsDto>> getAcademicAnalytics(AnalyticsFilterDto filter) {
         AcademicAnalyticsDto dto = analyticsService.getAcademicAnalytics(filter);

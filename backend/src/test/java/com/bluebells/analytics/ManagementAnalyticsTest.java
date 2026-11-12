@@ -46,6 +46,7 @@ public class ManagementAnalyticsTest {
 
     private String adminToken;
     private String studentToken;
+    private String accountantToken;
 
     @BeforeEach
     void setUp() {
@@ -53,6 +54,8 @@ public class ManagementAnalyticsTest {
                 .orElseGet(() -> roleRepository.save(new Role("ROLE_SUPER_ADMIN", "Super Admin")));
         Role studentRole = roleRepository.findByName("ROLE_STUDENT")
                 .orElseGet(() -> roleRepository.save(new Role("ROLE_STUDENT", "Student")));
+        Role accountantRole = roleRepository.findByName("ROLE_ACCOUNTANT")
+                .orElseGet(() -> roleRepository.save(new Role("ROLE_ACCOUNTANT", "Accountant")));
 
         User admin = userRepository.findByUsername("analytics_admin_test").orElseGet(() -> {
             User u = new User();
@@ -77,6 +80,18 @@ public class ManagementAnalyticsTest {
             return userRepository.save(u);
         });
         studentToken = jwtTokenProvider.generateToken(UserPrincipal.create(student));
+
+        User accountant = userRepository.findByUsername("analytics_accountant_test").orElseGet(() -> {
+            User u = new User();
+            u.setUsername("analytics_accountant_test");
+            u.setEmail("analytics_accountant@bluebells.test");
+            u.setFullName("Analytics Accountant");
+            u.setPasswordHash(passwordEncoder.encode("TestPass@123"));
+            u.setStatus("ACTIVE");
+            u.setRoles(new HashSet<>(Set.of(accountantRole)));
+            return userRepository.save(u);
+        });
+        accountantToken = jwtTokenProvider.generateToken(UserPrincipal.create(accountant));
     }
 
     @Test
@@ -124,5 +139,35 @@ public class ManagementAnalyticsTest {
                         .header("Authorization", "Bearer " + studentToken)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("Accountant is strictly forbidden from viewing non-financial management overview (Least Privilege RBAC)")
+    void testAccountantForbiddenFromFullOverview() throws Exception {
+        mockMvc.perform(get("/api/v1/analytics/overview")
+                        .header("Authorization", "Bearer " + accountantToken)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @DisplayName("Accountant is authorized to view dedicated financial analytics")
+    void testAccountantCanAccessFinancialAnalytics() throws Exception {
+        mockMvc.perform(get("/api/v1/analytics/financial")
+                        .header("Authorization", "Bearer " + accountantToken)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.totalBilled").isNumber())
+                .andExpect(jsonPath("$.data.totalCollected").isNumber());
+    }
+
+    @Test
+    @DisplayName("Accountant can export finance-restricted Excel spreadsheet")
+    void testAccountantExportFinanceOnlyExcel() throws Exception {
+        mockMvc.perform(get("/api/v1/analytics/export/excel")
+                        .header("Authorization", "Bearer " + accountantToken))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", containsString("spreadsheetml")))
+                .andExpect(header().string("Content-Disposition", containsString("bluebells_school_analytics.xlsx")));
     }
 }

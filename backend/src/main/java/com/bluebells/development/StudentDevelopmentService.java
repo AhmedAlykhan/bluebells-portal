@@ -14,6 +14,7 @@ import com.bluebells.lms.FileStorageService;
 import com.bluebells.security.UserPrincipal;
 import com.bluebells.students.Student;
 import com.bluebells.students.StudentRepository;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -89,10 +91,52 @@ public class StudentDevelopmentService {
         record.setRecordedBy(currentUser);
         record.setTeacherAppreciationNote(req.getTeacherAppreciationNote());
         record.setSkillsAcquired(req.getSkillsAcquired());
-        record.setStatus("VERIFIED");
+
+        // Approval workflow: Leadership records can be verified immediately;
+        // Teacher records default to PENDING_REVIEW unless explicitly specified by authorized coordinator
+        boolean isLeadership = currentUser.getRoles().stream().anyMatch(r ->
+                List.of("ROLE_SUPER_ADMIN", "ROLE_SCHOOL_ADMIN", "ROLE_PRINCIPAL", "ROLE_VICE_PRINCIPAL")
+                        .contains(r.getName()));
+        if (isLeadership) {
+            record.setStatus("VERIFIED");
+        } else {
+            record.setStatus("PENDING_REVIEW");
+        }
 
         StudentDevelopmentRecord saved = recordRepository.save(record);
         return mapToDto(saved);
+    }
+
+    @Transactional
+    public StudentDevelopmentDto verifyRecord(Long recordId) {
+        StudentDevelopmentRecord record = recordRepository.findById(recordId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Development record not found with ID: " + recordId));
+        record.setStatus("VERIFIED");
+        record.setUpdatedAt(Instant.now());
+        return mapToDto(recordRepository.save(record));
+    }
+
+    @Transactional
+    public StudentDevelopmentDto rejectRecord(Long recordId, String reason) {
+        StudentDevelopmentRecord record = recordRepository.findById(recordId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Development record not found with ID: " + recordId));
+        record.setStatus("REJECTED");
+        if (reason != null && !reason.trim().isEmpty()) {
+            record.setDescription(record.getDescription() + " [Review Note: " + reason.trim() + "]");
+        }
+        record.setUpdatedAt(Instant.now());
+        return mapToDto(recordRepository.save(record));
+    }
+
+    @Transactional(readOnly = true)
+    public Resource getEvidenceResource(Long recordId) {
+        StudentDevelopmentRecord record = recordRepository.findById(recordId)
+                .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Development record not found with ID: " + recordId));
+        verifyReadAccessForStudent(record.getStudent().getId());
+        if (record.getEvidenceFilePath() == null || record.getEvidenceFilePath().isBlank()) {
+            throw new ApiException(HttpStatus.NOT_FOUND, "No evidence file attached to this achievement record");
+        }
+        return fileStorageService.loadFileAsResource(record.getEvidenceFilePath());
     }
 
     @Transactional

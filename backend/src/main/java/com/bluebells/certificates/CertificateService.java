@@ -218,11 +218,15 @@ public class CertificateService {
 
     @Transactional
     public void revokeCertificate(Long id, String reason) {
+        if (reason == null || reason.trim().isEmpty()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "A formal revocation reason is mandatory to revoke an issued certificate.");
+        }
+
         IssuedCertificate cert = certificateRepository.findById(id)
                 .orElseThrow(() -> new ApiException(HttpStatus.NOT_FOUND, "Certificate not found with ID: " + id));
 
         cert.setStatus("REVOKED");
-        cert.setRevocationReason(reason);
+        cert.setRevocationReason(reason.trim());
         certificateRepository.save(cert);
     }
 

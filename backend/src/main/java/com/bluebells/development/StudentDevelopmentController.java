@@ -50,6 +50,34 @@ public class StudentDevelopmentController {
         return ResponseEntity.ok(ApiResponse.success("Evidence uploaded successfully", updated));
     }
 
+    @PatchMapping("/records/{id}/verify")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'VICE_PRINCIPAL') or hasAuthority('STUDENT_DEVELOPMENT_EDIT')")
+    @Operation(summary = "Officially verify a student development achievement record")
+    public ResponseEntity<ApiResponse<StudentDevelopmentDto>> verifyRecord(@PathVariable Long id) {
+        StudentDevelopmentDto verified = developmentService.verifyRecord(id);
+        return ResponseEntity.ok(ApiResponse.success("Achievement officially verified", verified));
+    }
+
+    @PatchMapping("/records/{id}/reject")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'VICE_PRINCIPAL') or hasAuthority('STUDENT_DEVELOPMENT_EDIT')")
+    @Operation(summary = "Reject a student development achievement submission")
+    public ResponseEntity<ApiResponse<StudentDevelopmentDto>> rejectRecord(
+            @PathVariable Long id,
+            @RequestParam(value = "reason", required = false) String reason) {
+        StudentDevelopmentDto rejected = developmentService.rejectRecord(id, reason);
+        return ResponseEntity.ok(ApiResponse.success("Achievement submission rejected", rejected));
+    }
+
+    @GetMapping("/records/{id}/evidence")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'VICE_PRINCIPAL', 'TEACHER', 'PARENT', 'STUDENT')")
+    @Operation(summary = "Download or view verified achievement evidence file")
+    public ResponseEntity<org.springframework.core.io.Resource> getEvidenceFile(@PathVariable Long id) {
+        org.springframework.core.io.Resource resource = developmentService.getEvidenceResource(id);
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                .body(resource);
+    }
+
     @DeleteMapping("/records/{id}")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL') or hasAuthority('STUDENT_DEVELOPMENT_EDIT')")
     @Operation(summary = "Delete an achievement record")

@@ -178,13 +178,13 @@ public class AdmissionService {
         // Find or create Guardian
         Guardian guardian = null;
         if (app.getGuardianPhone() != null && !app.getGuardianPhone().trim().isEmpty()) {
-            Optional<Guardian> existing = guardianRepository.findByPhonePrimary(app.getGuardianPhone().trim());
+            Optional<Guardian> existing = guardianRepository.findFirstByPhonePrimary(app.getGuardianPhone().trim());
             if (existing.isPresent()) {
                 guardian = existing.get();
             }
         }
         if (guardian == null && app.getGuardianCnic() != null && !app.getGuardianCnic().trim().isEmpty()) {
-            Optional<Guardian> existing = guardianRepository.findByCnicNumber(app.getGuardianCnic().trim());
+            Optional<Guardian> existing = guardianRepository.findFirstByCnicNumber(app.getGuardianCnic().trim());
             if (existing.isPresent()) {
                 guardian = existing.get();
             }

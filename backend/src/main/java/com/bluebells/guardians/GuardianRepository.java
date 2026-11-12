@@ -10,4 +10,6 @@ public interface GuardianRepository extends JpaRepository<Guardian, Long> {
     Optional<Guardian> findByUserId(Long userId);
     Optional<Guardian> findByPhonePrimary(String phonePrimary);
     Optional<Guardian> findByCnicNumber(String cnicNumber);
+    Optional<Guardian> findFirstByPhonePrimary(String phonePrimary);
+    Optional<Guardian> findFirstByCnicNumber(String cnicNumber);
 }
