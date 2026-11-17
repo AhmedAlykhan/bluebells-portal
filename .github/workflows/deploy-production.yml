@@ -1,0 +1,97 @@
+name: Deploy Production Environment
+
+on:
+  release:
+    types: [ published ]
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: 'Type "DEPLOY_PRODUCTION" to confirm authorization'
+        required: true
+        default: 'CANCEL'
+
+concurrency:
+  group: production-deployment
+  cancel-in-progress: false
+
+jobs:
+  pre-flight-check:
+    name: Pre-Flight Verification Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate Manual Confirmation
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          if [ "${{ github.event.inputs.confirmation }}" != "DEPLOY_PRODUCTION" ]; then
+            echo "::error ::Deployment aborted. Confirmation token did not match DEPLOY_PRODUCTION."
+            exit 1
+          fi
+
+  deploy-production:
+    name: Execute Production Rollout
+    runs-on: ubuntu-latest
+    needs: [pre-flight-check]
+    environment:
+      name: production
+      url: https://portal.bluebells.edu.pk
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Execute Production Backend Deploy Hook
+        run: |
+          echo "Triggering production backend deployment..."
+          if [ -n "${{ secrets.PROD_BACKEND_DEPLOY_HOOK }}" ]; then
+            curl -X POST -f "${{ secrets.PROD_BACKEND_DEPLOY_HOOK }}"
+          else
+            echo "PROD_BACKEND_DEPLOY_HOOK not configured. Dry-run simulation completed."
+          fi
+
+      - name: Execute Production Frontend Deploy Hook
+        run: |
+          echo "Triggering production frontend deployment..."
+          if [ -n "${{ secrets.PROD_FRONTEND_DEPLOY_HOOK }}" ]; then
+            curl -X POST -f "${{ secrets.PROD_FRONTEND_DEPLOY_HOOK }}"
+          else
+            echo "PROD_FRONTEND_DEPLOY_HOOK not configured. Dry-run simulation completed."
+          fi
+
+  post-deploy-smoke-tests:
+    name: Automated Production Smoke Verification
+    runs-on: ubuntu-latest
+    needs: [deploy-production]
+    steps:
+      - name: Smoke Test Backend Actuator Health
+        run: |
+          echo "Polling production health probe..."
+          PROD_HEALTH_URL="${{ secrets.PROD_BACKEND_HEALTH_URL }}"
+          if [ -n "$PROD_HEALTH_URL" ]; then
+            for attempt in {1..12}; do
+              RESPONSE=$(curl -s -w "\n%{http_code}" "$PROD_HEALTH_URL" || true)
+              HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+              BODY=$(echo "$RESPONSE" | sed '$d')
+              echo "Attempt $attempt: HTTP $HTTP_CODE | Body: $BODY"
+              if [ "$HTTP_CODE" = "200" ]; then
+                echo "Production backend healthcheck SUCCESS."
+                exit 0
+              fi
+              sleep 15
+            done
+            echo "::error ::Production backend failed health checks within window."
+            exit 1
+          else
+            echo "PROD_BACKEND_HEALTH_URL not configured. Skipping active smoke probe."
+          fi
+
+      - name: Smoke Test Frontend Static Assets
+        run: |
+          PROD_FRONTEND_URL="${{ secrets.PROD_FRONTEND_URL }}"
+          if [ -n "$PROD_FRONTEND_URL" ]; then
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$PROD_FRONTEND_URL" || true)
+            if [ "$STATUS" = "200" ]; then
+              echo "Production frontend healthcheck SUCCESS (HTTP 200)."
+            else
+              echo "::error ::Frontend URL returned unexpected status: $STATUS"
+              exit 1
+            fi
+          fi

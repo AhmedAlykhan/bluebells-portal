@@ -69,11 +69,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/certificates/verify/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/id-cards/verify/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/admissions/applications").permitAll()
-                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                        .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/actuator/**").hasRole("SUPER_ADMIN")
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         // All other APIs require authentication
                         .requestMatchers("/api/v1/**").authenticated()
-                        .anyRequest().permitAll()
+                        .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

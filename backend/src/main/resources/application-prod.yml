@@ -1,3 +1,7 @@
+server:
+  port: ${PORT:8080}
+  shutdown: graceful
+
 spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:${DATABASE_URL:jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:bluebells_school_db}?useSSL=true&allowPublicKeyRetrieval=true&serverTimezone=Asia/Karachi}}
@@ -26,8 +30,36 @@ spring:
     baseline-on-migrate: true
     locations: classpath:db/migration
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true
+    info:
+      enabled: false
+
+bluebells:
+  jwt:
+    # In production, JWT_SECRET must be supplied via environment variable; no hardcoded fallback allowed
+    secret: ${JWT_SECRET}
+    expiration-ms: 86400000 # 24h
+  storage:
+    upload-dir: ${STORAGE_DIR:/var/bluebells/storage}
+  initial-admin:
+    username: ${INITIAL_ADMIN_USERNAME:admin}
+    password: ${INITIAL_ADMIN_PASSWORD:}
+    email: ${INITIAL_ADMIN_EMAIL:admin@bluebells.edu.pk}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:https://*.vercel.app,https://*.pages.dev,https://*.netlify.app,https://*.onrender.com}
+
 logging:
   level:
     root: INFO
     com.bluebells: INFO
     org.springframework.security: WARN
+    org.springframework.web: WARN

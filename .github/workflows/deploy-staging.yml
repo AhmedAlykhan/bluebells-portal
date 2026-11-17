@@ -1,0 +1,58 @@
+name: Deploy Staging Environment
+
+on:
+  push:
+    branches: [ develop ]
+  workflow_dispatch:
+
+concurrency:
+  group: staging-deployment
+  cancel-in-progress: true
+
+jobs:
+  deploy-staging:
+    name: Deploy to Staging Cluster
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging.bluebells.edu.pk
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Trigger Staging Backend Deployment
+        run: |
+          echo "Deploying backend to staging target environment..."
+          # Secure deployment hook or CLI execution
+          if [ -n "${{ secrets.STAGING_BACKEND_DEPLOY_HOOK }}" ]; then
+            curl -X POST -f "${{ secrets.STAGING_BACKEND_DEPLOY_HOOK }}"
+          else
+            echo "STAGING_BACKEND_DEPLOY_HOOK not configured. Dry-run simulation passed."
+          fi
+
+      - name: Trigger Staging Frontend Deployment
+        run: |
+          echo "Deploying frontend to staging target environment..."
+          if [ -n "${{ secrets.STAGING_FRONTEND_DEPLOY_HOOK }}" ]; then
+            curl -X POST -f "${{ secrets.STAGING_FRONTEND_DEPLOY_HOOK }}"
+          else
+            echo "STAGING_FRONTEND_DEPLOY_HOOK not configured. Dry-run simulation passed."
+          fi
+
+      - name: Staging Health Verification
+        run: |
+          echo "Verifying staging service health endpoints..."
+          # If health URL is defined, test up to 5 attempts
+          if [ -n "${{ secrets.STAGING_HEALTH_URL }}" ]; then
+            for i in {1..5}; do
+              STATUS=$(curl -s -o /dev/null -w "%{http_code}" "${{ secrets.STAGING_HEALTH_URL }}" || true)
+              if [ "$STATUS" = "200" ]; then
+                echo "Staging healthcheck passed (HTTP 200)."
+                exit 0
+              fi
+              echo "Waiting for staging startup... attempt $i"
+              sleep 10
+            done
+            echo "Staging health verification timed out."
+            exit 1
+          fi
