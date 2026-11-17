@@ -17,11 +17,10 @@ CREATE TABLE IF NOT EXISTS lms_course_modules (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 2. Enhance Lessons Table
-ALTER TABLE lessons 
-    ADD COLUMN module_id BIGINT NULL AFTER course_id,
-    ADD COLUMN lesson_type VARCHAR(32) NOT NULL DEFAULT 'LECTURE' AFTER content,
-    ADD COLUMN duration_minutes INT NOT NULL DEFAULT 0 AFTER lesson_type,
-    ADD CONSTRAINT fk_lessons_module FOREIGN KEY (module_id) REFERENCES lms_course_modules(id) ON DELETE SET NULL;
+ALTER TABLE lessons ADD COLUMN module_id BIGINT NULL AFTER course_id;
+ALTER TABLE lessons ADD COLUMN lesson_type VARCHAR(32) NOT NULL DEFAULT 'LECTURE' AFTER content;
+ALTER TABLE lessons ADD COLUMN duration_minutes INT NOT NULL DEFAULT 0 AFTER lesson_type;
+ALTER TABLE lessons ADD CONSTRAINT fk_lessons_module FOREIGN KEY (module_id) REFERENCES lms_course_modules(id) ON DELETE SET NULL;
 
 -- 3. Learning Resources (PDF Notes, Past Papers, Syllabi, Slide Decks, Lab Manuals)
 CREATE TABLE IF NOT EXISTS lms_learning_resources (
@@ -67,14 +66,13 @@ CREATE TABLE IF NOT EXISTS lms_youtube_videos (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- 5. Enhance Assignments Table
-ALTER TABLE assignments
-    ADD COLUMN module_id BIGINT NULL AFTER course_id,
-    ADD COLUMN passing_marks DECIMAL(5,2) NOT NULL DEFAULT 40.00 AFTER max_marks,
-    ADD COLUMN allowed_formats VARCHAR(128) NOT NULL DEFAULT 'PDF,IMAGES,DOCX' AFTER allow_late_submission,
-    ADD COLUMN attachment_url VARCHAR(512) NULL AFTER allowed_formats,
-    ADD COLUMN attachment_name VARCHAR(255) NULL AFTER attachment_url,
-    ADD COLUMN attachment_size_bytes BIGINT NULL AFTER attachment_name,
-    ADD CONSTRAINT fk_assignments_module FOREIGN KEY (module_id) REFERENCES lms_course_modules(id) ON DELETE SET NULL;
+ALTER TABLE assignments ADD COLUMN module_id BIGINT NULL AFTER course_id;
+ALTER TABLE assignments ADD COLUMN passing_marks DECIMAL(5,2) NOT NULL DEFAULT 40.00 AFTER max_marks;
+ALTER TABLE assignments ADD COLUMN allowed_formats VARCHAR(128) NOT NULL DEFAULT 'PDF,IMAGES,DOCX' AFTER allow_late_submission;
+ALTER TABLE assignments ADD COLUMN attachment_url VARCHAR(512) NULL AFTER allowed_formats;
+ALTER TABLE assignments ADD COLUMN attachment_name VARCHAR(255) NULL AFTER attachment_url;
+ALTER TABLE assignments ADD COLUMN attachment_size_bytes BIGINT NULL AFTER attachment_name;
+ALTER TABLE assignments ADD CONSTRAINT fk_assignments_module FOREIGN KEY (module_id) REFERENCES lms_course_modules(id) ON DELETE SET NULL;
 
 -- 6. Assignment Multi-Photo / Multi-File Submissions (Handwritten Homework Pages)
 CREATE TABLE IF NOT EXISTS lms_submission_files (

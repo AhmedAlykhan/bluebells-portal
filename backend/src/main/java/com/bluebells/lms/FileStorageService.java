@@ -26,7 +26,7 @@ public class FileStorageService {
 
     private static final Logger log = LoggerFactory.getLogger(FileStorageService.class);
 
-    private final Path storageLocation;
+    private Path storageLocation;
 
     private static final Set<String> ALLOWED_EXTENSIONS = Set.of(
             "pdf", "doc", "docx", "ppt", "pptx", "xls", "xlsx", "txt",
@@ -50,8 +50,17 @@ public class FileStorageService {
             Files.createDirectories(this.storageLocation.resolve("resources"));
             log.info("LMS File storage directory initialized at: {}", this.storageLocation);
         } catch (IOException e) {
-            log.error("Could not initialize file storage directory: {}", e.getMessage());
-            throw new ApiException(HttpStatus.INTERNAL_SERVER_ERROR, "Could not initialize file upload storage directory");
+            log.warn("Could not initialize configured storage directory ({}): {}. Falling back to './storage/uploads'...", this.storageLocation, e.getMessage());
+            try {
+                this.storageLocation = Paths.get("./storage/uploads").toAbsolutePath().normalize();
+                Files.createDirectories(this.storageLocation);
+                Files.createDirectories(this.storageLocation.resolve("submissions"));
+                Files.createDirectories(this.storageLocation.resolve("resources"));
+                log.info("LMS File storage directory initialized at fallback location: {}", this.storageLocation);
+            } catch (IOException ex) {
+                log.error("Could not initialize fallback file storage directory: {}", ex.getMessage());
+                throw new ApiException(HttpStatus.INTERNAL_SERVER_ERROR, "Could not initialize file upload storage directory");
+            }
         }
     }
 
