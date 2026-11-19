@@ -41,9 +41,6 @@ ENV PORT=8080 \
 
 EXPOSE 8080
 
-# Healthcheck targeting Actuator health endpoint
-HEALTHCHECK --interval=30s --timeout=5s --start-period=45s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:${PORT:-8080}/actuator/health || exit 1
 
 # Execute Java with shell variable expansion and exec signal propagation
 ENTRYPOINT ["sh", "-c", "exec java -Dserver.port=${PORT:-8080} -Dspring.profiles.active=${SPRING_PROFILES_ACTIVE:-prod} -jar app.jar"]
