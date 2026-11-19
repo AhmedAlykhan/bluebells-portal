@@ -30,6 +30,13 @@ USER bluebells
 # Default environment configuration
 ENV PORT=8080 \
     SPRING_PROFILES_ACTIVE=prod \
+    SPRING_DATASOURCE_URL="jdbc:mysql://gateway01.ap-southeast-1.prod.aws.tidbcloud.com:4000/bluebells_school_db?useSSL=true&allowPublicKeyRetrieval=true&serverTimezone=Asia/Karachi" \
+    SPRING_DATASOURCE_USERNAME="2F3Ja9P3r4bNoZp.root" \
+    SPRING_DATASOURCE_PASSWORD="ShebVLbjn7wyU4eK" \
+    JWT_SECRET="jfcX15zDXK5Dy9f3IyLn5VVckpzXQhYzW/cSPKBqQeNtBAKceWCG1py4nU3pXp5XhNKfOX4NADzRxSoEwHhipw==" \
+    CORS_ALLOWED_ORIGINS="*" \
+    INITIAL_ADMIN_USERNAME="admin" \
+    INITIAL_ADMIN_PASSWORD="Admin@12345" \
     JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75.0 -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError"
 
 EXPOSE 8080

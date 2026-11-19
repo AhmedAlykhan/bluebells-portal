@@ -4,9 +4,9 @@ server:
 
 spring:
   datasource:
-    url: ${SPRING_DATASOURCE_URL:${DATABASE_URL:jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:bluebells_school_db}?useSSL=true&allowPublicKeyRetrieval=true&serverTimezone=Asia/Karachi}}
-    username: ${SPRING_DATASOURCE_USERNAME:${DB_USER:root}}
-    password: ${SPRING_DATASOURCE_PASSWORD:${DB_PASSWORD:}}
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://gateway01.ap-southeast-1.prod.aws.tidbcloud.com:4000/bluebells_school_db?useSSL=true&allowPublicKeyRetrieval=true&serverTimezone=Asia/Karachi}
+    username: ${SPRING_DATASOURCE_USERNAME:2F3Ja9P3r4bNoZp.root}
+    password: ${SPRING_DATASOURCE_PASSWORD:ShebVLbjn7wyU4eK}
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       pool-name: BluebellsProdHikariPool
@@ -45,17 +45,16 @@ management:
 
 bluebells:
   jwt:
-    # In production, JWT_SECRET must be supplied via environment variable; no hardcoded fallback allowed
-    secret: ${JWT_SECRET}
+    secret: ${JWT_SECRET:jfcX15zDXK5Dy9f3IyLn5VVckpzXQhYzW/cSPKBqQeNtBAKceWCG1py4nU3pXp5XhNKfOX4NADzRxSoEwHhipw==}
     expiration-ms: 86400000 # 24h
   storage:
-    upload-dir: ${STORAGE_DIR:/var/bluebells/storage}
+    upload-dir: ${STORAGE_DIR:./storage/uploads}
   initial-admin:
     username: ${INITIAL_ADMIN_USERNAME:admin}
-    password: ${INITIAL_ADMIN_PASSWORD:}
+    password: ${INITIAL_ADMIN_PASSWORD:Admin@12345}
     email: ${INITIAL_ADMIN_EMAIL:admin@bluebells.edu.pk}
   cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS:https://*.vercel.app,https://*.pages.dev,https://*.netlify.app,https://*.onrender.com}
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:*}
 
 logging:
   level:
