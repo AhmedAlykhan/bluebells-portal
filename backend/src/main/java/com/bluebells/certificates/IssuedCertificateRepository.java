@@ -15,6 +15,8 @@ public interface IssuedCertificateRepository extends JpaRepository<IssuedCertifi
 
     Optional<IssuedCertificate> findByCertificateNumber(String certificateNumber);
 
+    boolean existsByCertificateNumber(String certificateNumber);
+
     List<IssuedCertificate> findByCertificateType(String certificateType);
 
     List<IssuedCertificate> findByStatus(String status);

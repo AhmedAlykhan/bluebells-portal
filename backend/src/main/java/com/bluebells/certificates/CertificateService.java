@@ -137,7 +137,7 @@ public class CertificateService {
                 (template != null ? template.getTitle() : "Certificate of Academic Excellence");
 
         String narrative = req.getCustomNarrative();
-        if (narrative == null && template != null) {
+        if ((narrative == null || narrative.trim().isEmpty()) && template != null) {
             String body = template.getBodyTemplate();
             String fullName = student.getFirstName() + " " + student.getLastName();
             narrative = body
@@ -155,12 +155,17 @@ public class CertificateService {
                     .replace("{{SESSION}}", session.getName())
                     .replace("{academic_session}", session.getName());
         }
-        if (narrative == null) {
+        if (narrative == null || narrative.trim().isEmpty()) {
             narrative = "This is to certify that " + student.getFirstName() + " " + student.getLastName() +
                     " bearing Admission No. " + student.getAdmissionNumber() + " has achieved distinction.";
         }
 
-        String certNum = "BSS-CERT-" + LocalDate.now().getYear() + "-" + String.format("%04d", (certificateRepository.count() + 1));
+        long seq = certificateRepository.count() + 1;
+        String certNum;
+        do {
+            certNum = "BSS-CERT-" + LocalDate.now().getYear() + "-" + String.format("%04d", seq++);
+        } while (certificateRepository.existsByCertificateNumber(certNum));
+
         String vCode = "VRF-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase() + "-BSS";
 
         IssuedCertificate cert = new IssuedCertificate();

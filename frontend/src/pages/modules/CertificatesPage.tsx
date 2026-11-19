@@ -133,8 +133,8 @@ export const CertificatesPage: React.FC = () => {
         studentId: Number(issueForm.studentId),
         templateId: Number(issueForm.templateId),
         certificateType: issueForm.certificateType,
-        customTitle: issueForm.customTitle || undefined,
-        customNarrative: issueForm.customNarrative || undefined,
+        customTitle: issueForm.customTitle.trim() || undefined,
+        customNarrative: issueForm.customNarrative.trim() || undefined,
         issueDate: issueForm.issueDate
       });
 
@@ -144,7 +144,13 @@ export const CertificatesPage: React.FC = () => {
         setViewingCert(res.data.data);
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to issue digital certificate.');
+      const errorMsg =
+        err.response?.data?.detail ||
+        err.response?.data?.message ||
+        (err.response?.data?.validationErrors && err.response.data.validationErrors.map((v: any) => v.message).join(', ')) ||
+        err.message ||
+        'Failed to issue digital certificate.';
+      alert(errorMsg);
     } finally {
       setIssuing(false);
     }

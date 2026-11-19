@@ -1,5 +1,7 @@
 package com.bluebells.certificates.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import org.springframework.format.annotation.DateTimeFormat;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 
@@ -20,6 +22,8 @@ public class IssueCertificateRequest {
 
     private String issuingAuthorityTitle;
 
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate issueDate;
 
     public IssueCertificateRequest() {}
