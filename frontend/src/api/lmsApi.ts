@@ -214,8 +214,9 @@ export const lmsApi = {
 
   // File preview / stream URL helper
   getFileStreamUrl: (filePath: string, download = false): string => {
-    const baseUrl = import.meta.env.VITE_API_URL 
-      ? `${import.meta.env.VITE_API_URL.replace(/\/+$/, '')}/api/v1` 
+    const rawApiUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://bluebells-portal-81fba.containers.snapdeploy.app' : '');
+    const baseUrl = rawApiUrl 
+      ? `${rawApiUrl.replace(/\/+$/, '')}/api/v1` 
       : '/api/v1';
     return `${baseUrl}/lms/files/stream?path=${encodeURIComponent(filePath)}&download=${download}`;
   }

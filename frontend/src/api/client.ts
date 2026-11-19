@@ -1,8 +1,9 @@
 import axios, { AxiosError } from 'axios';
 import { ApiError } from '../types';
 
-const apiBase = import.meta.env.VITE_API_URL 
-  ? `${import.meta.env.VITE_API_URL.replace(/\/+$/, '')}/api/v1` 
+const rawApiUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? 'https://bluebells-portal-81fba.containers.snapdeploy.app' : '');
+const apiBase = rawApiUrl 
+  ? `${rawApiUrl.replace(/\/+$/, '')}/api/v1` 
   : '/api/v1';
 
 export const apiClient = axios.create({
