@@ -37,7 +37,7 @@ ENV PORT=8080 \
     CORS_ALLOWED_ORIGINS="*" \
     INITIAL_ADMIN_USERNAME="admin" \
     INITIAL_ADMIN_PASSWORD="Admin@12345" \
-    JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75.0 -XX:+UseG1GC -XX:+ExitOnOutOfMemoryError"
+    JAVA_TOOL_OPTIONS="-Xms128m -Xmx260m -XX:+UseSerialGC -XX:CompressedClassSpaceSize=32m -XX:ReservedCodeCacheSize=32m"
 
 EXPOSE 8080
 
