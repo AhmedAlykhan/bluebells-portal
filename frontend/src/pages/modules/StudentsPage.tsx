@@ -76,19 +76,54 @@ export const StudentsPage: React.FC = () => {
     return () => clearTimeout(timer);
   }, [searchTerm, loadStudents]);
 
+  const exportLocalStudentsCsv = () => {
+    const headers = ['Registration #', 'Student Full Name', 'Class & Section', 'Roll #', 'Gender', 'Blood Group', 'Primary Guardian', 'Emergency Contact', 'Status'];
+    const rows = students.map(s => [
+      `"${s.id}"`,
+      `"${s.name.replace(/"/g, '""')}"`,
+      `"${s.class.replace(/"/g, '""')}"`,
+      `"${s.roll}"`,
+      `"${s.gender}"`,
+      `"${s.blood}"`,
+      `"${s.guardian.replace(/"/g, '""')}"`,
+      `"${s.phone}"`,
+      `"${s.status}"`
+    ]);
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'bluebells_students_directory.csv');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+  };
+
   const handleExportCsv = async () => {
     setExporting(true);
     try {
       const res = await apiClient.get('/reports/students/export-csv', { responseType: 'blob' });
-      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'bluebells_students_roster.csv');
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+      const text = typeof res.data === 'string' ? res.data : await res.data.text();
+      // If backend has student rows (more than 1 line)
+      if (text && text.trim().split('\n').length > 1) {
+        const blob = new Blob([text], { type: 'text/csv;charset=utf-8;' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'bluebells_students_roster.csv');
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+      } else {
+        // Fallback: Export the active displayed students roster
+        exportLocalStudentsCsv();
+      }
     } catch (err) {
-      console.error('Failed to export students CSV', err);
+      console.warn('Backend export failed, generating CSV from active directory', err);
+      exportLocalStudentsCsv();
     } finally {
       setExporting(false);
     }
