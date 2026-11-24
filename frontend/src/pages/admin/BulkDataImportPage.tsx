@@ -224,10 +224,29 @@ export const BulkDataImportPage: React.FC = () => {
   }, [activeTab]);
 
   // Handle template download
-  const handleDownloadTemplate = (format: 'xlsx' | 'csv') => {
-    const type = importType.toLowerCase();
-    const url = `/api/v1/admin/data-import/templates/${type}.${format}`;
-    window.open(url, '_blank');
+  const handleDownloadTemplate = async (format: 'xlsx' | 'csv') => {
+    try {
+      const type = importType.toLowerCase();
+      const res = await apiClient.get(`/admin/data-import/templates/${type}.${format}`, {
+        responseType: 'blob'
+      });
+      const mimeType = format === 'csv' 
+        ? 'text/csv;charset=utf-8;' 
+        : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+      const blob = new Blob([res.data], { type: mimeType });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `bluebells_${type}_import_template.${format}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+      setSuccessAlert(`Template downloaded: bluebells_${type}_import_template.${format}`);
+    } catch (err: any) {
+      console.error('Failed to download template', err);
+      setErrorAlert('Failed to download template file. Please verify network and permissions.');
+    }
   };
 
   // Handle File Selection
@@ -368,8 +387,25 @@ export const BulkDataImportPage: React.FC = () => {
   };
 
   // Download Execution Report
-  const handleDownloadReport = (jobId: string) => {
-    window.open(`/api/v1/admin/data-import/${jobId}/report`, '_blank');
+  const handleDownloadReport = async (jobId: string) => {
+    try {
+      const res = await apiClient.get(`/admin/data-import/${jobId}/report`, {
+        responseType: 'blob'
+      });
+      const blob = new Blob([res.data], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `bluebells_import_report_${jobId}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+      setSuccessAlert(`Audit report downloaded: bluebells_import_report_${jobId}.csv`);
+    } catch (err: any) {
+      console.error('Failed to download audit report', err);
+      setErrorAlert('Failed to download audit report. Please verify network and permissions.');
+    }
   };
 
   // Toggle user permission (Super Admin)
