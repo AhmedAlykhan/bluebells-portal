@@ -63,13 +63,14 @@ public class SecurityConfig {
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Public endpoints
+                        // Public health & ALB target group probes
+                        .requestMatchers("/", "/health", "/api/v1/health").permitAll()
+                        .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                         .requestMatchers("/api/v1/auth/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/school/profile").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/certificates/verify/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/id-cards/verify/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/admissions/applications").permitAll()
-                        .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/actuator/**").hasRole("SUPER_ADMIN")
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         // All other APIs require authentication
