@@ -10,10 +10,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
+@Validated
 @RestController
 @RequestMapping("/api/v1/analytics")
 @Tag(name = "Institutional Analytics", description = "Real-time School Management Intelligence & Analytics APIs")
@@ -66,7 +68,7 @@ public class AnalyticsController {
     }
 
     @GetMapping("/lms")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL') or hasAuthority('ANALYTICS_VIEW')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'VICE_PRINCIPAL') or hasAuthority('ANALYTICS_VIEW')")
     @Operation(summary = "Get LMS engagement, assignment completion rates, and learning material stats")
     public ResponseEntity<ApiResponse<LmsAnalyticsDto>> getLmsAnalytics(AnalyticsFilterDto filter) {
         LmsAnalyticsDto dto = analyticsService.getLmsAnalytics(filter);
@@ -74,7 +76,7 @@ public class AnalyticsController {
     }
 
     @GetMapping("/staff")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL') or hasAuthority('ANALYTICS_VIEW')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'VICE_PRINCIPAL') or hasAuthority('ANALYTICS_VIEW')")
     @Operation(summary = "Get staff department breakdown, teacher workloads, and assignment statistics")
     public ResponseEntity<ApiResponse<StaffAnalyticsDto>> getStaffAnalytics(AnalyticsFilterDto filter) {
         StaffAnalyticsDto dto = analyticsService.getStaffAnalytics(filter);
@@ -82,7 +84,7 @@ public class AnalyticsController {
     }
 
     @GetMapping("/export/excel")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'ACCOUNTANT') or hasAuthority('ANALYTICS_EXPORT')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'VICE_PRINCIPAL') or hasAuthority('ANALYTICS_EXPORT')")
     @Operation(summary = "Export multi-sheet executive analytics workbook (.xlsx)")
     public ResponseEntity<byte[]> exportAnalyticsExcel(AnalyticsFilterDto filter) throws IOException {
         byte[] excelBytes = analyticsService.exportAnalyticsToExcel(filter);

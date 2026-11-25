@@ -18,7 +18,16 @@ public class CreateStudentRequest {
     @NotBlank(message = "Gender is required")
     private String gender;
 
+    @jakarta.validation.constraints.Pattern(
+            regexp = "^$|^(A|B|AB|O)[+-]$",
+            message = "Blood group must be valid (e.g. A+, B+, O-, AB+)"
+    )
     private String bloodGroup;
+
+    @jakarta.validation.constraints.Pattern(
+            regexp = "^$|^[0-9]{5}-[0-9]{7}-[0-9]$",
+            message = "B-Form / CNIC must be in standard Pakistani format (e.g. 12345-1234567-1)"
+    )
     private String bFormNumber;
 
     @NotBlank(message = "Residential address is required")

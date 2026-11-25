@@ -41,6 +41,7 @@ public class ExamService {
     private final EnrollmentRepository enrollmentRepository;
     private final UserRepository userRepository;
     private final AttendanceService attendanceService;
+    private final com.bluebells.staff.TeacherAssignmentRepository teacherAssignmentRepository;
 
     public ExamService(
             ExamRepository examRepository,
@@ -53,7 +54,8 @@ public class ExamService {
             StudentRepository studentRepository,
             EnrollmentRepository enrollmentRepository,
             UserRepository userRepository,
-            AttendanceService attendanceService) {
+            AttendanceService attendanceService,
+            com.bluebells.staff.TeacherAssignmentRepository teacherAssignmentRepository) {
         this.examRepository = examRepository;
         this.gradingScaleRepository = gradingScaleRepository;
         this.marksEntryRepository = marksEntryRepository;
@@ -65,6 +67,7 @@ public class ExamService {
         this.enrollmentRepository = enrollmentRepository;
         this.userRepository = userRepository;
         this.attendanceService = attendanceService;
+        this.teacherAssignmentRepository = teacherAssignmentRepository;
     }
 
     @Transactional
@@ -113,6 +116,31 @@ public class ExamService {
 
         User recorder = userRepository.findById(currentUser.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + currentUser.getId()));
+
+        // Validate teacher subject-section assignment on marks entry (AUTH-01)
+        if (currentUser.getAuthorities() != null) {
+            boolean isTeacher = currentUser.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_TEACHER"));
+            boolean isElevated = currentUser.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") 
+                                || a.getAuthority().equals("ROLE_SUPER_ADMIN") 
+                                || a.getAuthority().equals("ROLE_PRINCIPAL") 
+                                || a.getAuthority().equals("ROLE_VICE_PRINCIPAL"));
+
+            if (isTeacher && !isElevated) {
+                Long sessionId = exam.getAcademicSession() != null ? exam.getAcademicSession().getId() : null;
+                if (sessionId != null) {
+                    List<com.bluebells.staff.TeacherAssignment> assignments = teacherAssignmentRepository
+                            .findByTeacherIdAndAcademicSessionId(currentUser.getId(), sessionId);
+                    boolean assigned = assignments.stream()
+                            .anyMatch(ta -> ta.getSubject() != null && ta.getSubject().getId().equals(subject.getId()));
+                    if (!assigned) {
+                        throw new com.bluebells.exception.ForbiddenException(
+                                "Access denied: You are not assigned to teach subject '" + subject.getName() + "' for this academic session.");
+                    }
+                }
+            }
+        }
 
         List<MarksEntry> savedEntries = new ArrayList<>();
 

@@ -23,6 +23,21 @@ public abstract class BaseEntity {
     @Column(name = "version")
     private Long version;
 
+    @PrePersist
+    protected void onPrePersist() {
+        if (createdAt == null) {
+            createdAt = Instant.now();
+        }
+        if (updatedAt == null) {
+            updatedAt = Instant.now();
+        }
+    }
+
+    @PreUpdate
+    protected void onPreUpdate() {
+        updatedAt = Instant.now();
+    }
+
     public Instant getCreatedAt() {
         return createdAt;
     }

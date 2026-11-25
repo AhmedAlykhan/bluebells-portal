@@ -12,6 +12,11 @@ spring:
     serialization:
       write-dates-as-timestamps: false
     time-zone: Asia/Karachi
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 50MB
 
 management:
   endpoints:

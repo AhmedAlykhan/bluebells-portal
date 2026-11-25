@@ -6,6 +6,7 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { ForbiddenPage } from './components/auth/ForbiddenPage';
 import { PublicWebsite } from './pages/public/PublicWebsite';
 import { LoginPage } from './pages/LoginPage';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
 
 // Role-specific Dashboards (Code-split with dynamic imports)
 const StudentDashboard = lazy(() => import('./pages/dashboards/StudentDashboard').then(m => ({ default: m.StudentDashboard })));
@@ -80,8 +81,9 @@ function RoleDashboardRouter() {
 
 export function App() {
   return (
-    <Suspense fallback={<PageFallback />}>
-      <Routes>
+    <ErrorBoundary>
+      <Suspense fallback={<PageFallback />}>
+        <Routes>
         {/* Public Landing & Institutional Showcase */}
       <Route path="/welcome" element={<PublicWebsite />} />
 
@@ -286,6 +288,7 @@ export function App() {
       </Route>
     </Routes>
     </Suspense>
+    </ErrorBoundary>
   );
 }
 

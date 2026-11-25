@@ -21,6 +21,7 @@ public class CreateInvoiceRequest {
     @NotNull(message = "Due date is required")
     private LocalDate dueDate;
 
+    @jakarta.validation.constraints.DecimalMin(value = "0.00", message = "Discount amount cannot be negative")
     private BigDecimal discountAmount = BigDecimal.ZERO;
 
     @NotEmpty(message = "Invoice items cannot be empty")

@@ -18,10 +18,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+@Validated
 @RestController
 @RequestMapping("/api/v1/students")
 @Tag(name = "Students", description = "Student management, profiles, and enrollment endpoints")

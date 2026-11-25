@@ -36,6 +36,20 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, ex.getStatus());
     }
 
+    private static final java.util.Set<String> SENSITIVE_FIELDS = java.util.Set.of(
+            "password", "confirmpassword", "oldpassword", "newpassword", "secret", "token", "accesstoken", "refreshtoken"
+    );
+
+    private Object sanitizeRejectedValue(String fieldName, Object value) {
+        if (fieldName != null) {
+            String normalized = fieldName.toLowerCase().replaceAll("[^a-z]", "");
+            if (SENSITIVE_FIELDS.stream().anyMatch(normalized::contains)) {
+                return "[PROTECTED]";
+            }
+        }
+        return value;
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex, HttpServletRequest request) {
         String correlationId = UUID.randomUUID().toString();
@@ -53,7 +67,7 @@ public class GlobalExceptionHandler {
             error.getValidationErrors().add(new ValidationError(
                     fieldError.getField(),
                     fieldError.getDefaultMessage(),
-                    fieldError.getRejectedValue()
+                    sanitizeRejectedValue(fieldError.getField(), fieldError.getRejectedValue())
             ));
         }
 
@@ -88,6 +102,59 @@ public class GlobalExceptionHandler {
                 correlationId
         );
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler(org.springframework.security.authentication.LockedException.class)
+    public ResponseEntity<ErrorResponse> handleLockedException(org.springframework.security.authentication.LockedException ex, HttpServletRequest request) {
+        String correlationId = UUID.randomUUID().toString();
+        log.warn("Account locked [{}]: {}", correlationId, ex.getMessage());
+
+        ErrorResponse error = new ErrorResponse(
+                "Locked",
+                HttpStatus.LOCKED.value(),
+                ex.getMessage(),
+                request.getRequestURI(),
+                correlationId
+        );
+        return new ResponseEntity<>(error, HttpStatus.LOCKED);
+    }
+
+    @ExceptionHandler(jakarta.validation.ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolation(jakarta.validation.ConstraintViolationException ex, HttpServletRequest request) {
+        String correlationId = UUID.randomUUID().toString();
+        log.warn("Constraint violation [{}]: {}", correlationId, ex.getMessage());
+
+        ErrorResponse error = new ErrorResponse(
+                "Validation Failed",
+                HttpStatus.BAD_REQUEST.value(),
+                "Database entity constraint validation failed",
+                request.getRequestURI(),
+                correlationId
+        );
+        for (jakarta.validation.ConstraintViolation<?> violation : ex.getConstraintViolations()) {
+            String property = violation.getPropertyPath().toString();
+            error.getValidationErrors().add(new ValidationError(
+                    property,
+                    violation.getMessage(),
+                    sanitizeRejectedValue(property, violation.getInvalidValue())
+            ));
+        }
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(org.springframework.web.multipart.MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> handleMaxUploadSize(org.springframework.web.multipart.MaxUploadSizeExceededException ex, HttpServletRequest request) {
+        String correlationId = UUID.randomUUID().toString();
+        log.warn("Max upload size exceeded [{}]: max={}", correlationId, ex.getMaxUploadSize());
+
+        ErrorResponse error = new ErrorResponse(
+                "Payload Too Large",
+                HttpStatus.PAYLOAD_TOO_LARGE.value(),
+                "Uploaded file exceeds the maximum allowable upload limit (50 MB).",
+                request.getRequestURI(),
+                correlationId
+        );
+        return new ResponseEntity<>(error, HttpStatus.PAYLOAD_TOO_LARGE);
     }
 
     @ExceptionHandler(OptimisticLockingFailureException.class)

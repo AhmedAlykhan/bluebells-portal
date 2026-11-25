@@ -66,6 +66,19 @@ public class Student {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt = Instant.now();
 
+    @PrePersist
+    protected void onPrePersist() {
+        if (createdAt == null) {
+            createdAt = Instant.now();
+        }
+        updatedAt = Instant.now();
+    }
+
+    @PreUpdate
+    protected void onPreUpdate() {
+        updatedAt = Instant.now();
+    }
+
     public Student() {
     }
 

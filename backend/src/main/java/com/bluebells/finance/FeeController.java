@@ -14,11 +14,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Validated
 @RestController
 @RequestMapping("/api/v1/finance")
 @Tag(name = "Fees & Finance", description = "Fee structures, invoicing, payment receipts, and parent financial isolation")

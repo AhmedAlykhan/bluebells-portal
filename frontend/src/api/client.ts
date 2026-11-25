@@ -29,6 +29,9 @@ apiClient.interceptors.response.use(
       localStorage.removeItem('bluebells_token');
       localStorage.removeItem('bluebells_user');
       localStorage.setItem('bluebells_logged_out', 'true');
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+      }
     }
     return Promise.reject(error);
   }

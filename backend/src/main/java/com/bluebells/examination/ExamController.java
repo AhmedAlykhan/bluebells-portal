@@ -16,10 +16,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/api/v1/exams")
 @Tag(name = "Examinations", description = "Exam schedules, subject marks recording, result publishing, and report cards")
@@ -34,7 +36,7 @@ public class ExamController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'VICE_PRINCIPAL')")
     @Operation(summary = "Create an examination schedule")
     public ResponseEntity<ApiResponse<ExamDto>> createExam(@Valid @RequestBody CreateExamRequest request) {
         ExamDto exam = examService.createExam(request);
@@ -43,7 +45,7 @@ public class ExamController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'TEACHER', 'PARENT', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'VICE_PRINCIPAL', 'TEACHER', 'PARENT', 'STUDENT')")
     @Operation(summary = "List all examinations")
     public ResponseEntity<ApiResponse<List<ExamDto>>> getExams() {
         List<ExamDto> exams = examService.getExams();
@@ -51,7 +53,7 @@ public class ExamController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'TEACHER', 'PARENT', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'VICE_PRINCIPAL', 'TEACHER', 'PARENT', 'STUDENT')")
     @Operation(summary = "Get exam details by ID")
     public ResponseEntity<ApiResponse<ExamDto>> getExamById(@PathVariable Long id) {
         ExamDto exam = examService.getExamById(id);
@@ -59,7 +61,7 @@ public class ExamController {
     }
 
     @PostMapping("/{id}/marks")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'TEACHER') or hasAuthority('MARKS_ENTRY')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'VICE_PRINCIPAL', 'TEACHER') or hasAuthority('MARKS_ENTRY')")
     @Operation(summary = "Record subject marks for students in bulk")
     public ResponseEntity<ApiResponse<List<MarksEntryDto>>> recordMarks(
             @PathVariable Long id,
@@ -73,7 +75,7 @@ public class ExamController {
     }
 
     @PostMapping("/{id}/publish")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL') or hasAuthority('RESULTS_PUBLISH')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'VICE_PRINCIPAL') or hasAuthority('RESULTS_PUBLISH')")
     @Operation(summary = "Publish exam results and generate student report cards")
     public ResponseEntity<ApiResponse<ExamDto>> publishResults(@PathVariable Long id) {
         ExamDto exam = examService.publishExamResults(id);
@@ -92,7 +94,7 @@ public class ExamController {
     }
 
     @GetMapping("/students/{studentId}/report-cards")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'TEACHER', 'PARENT', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'VICE_PRINCIPAL', 'TEACHER', 'PARENT', 'STUDENT')")
     @Operation(summary = "Get all report cards for a student with object-level authorization")
     public ResponseEntity<ApiResponse<List<ReportCardDto>>> getStudentReportCards(
             @PathVariable Long studentId,
@@ -103,7 +105,7 @@ public class ExamController {
     }
 
     @GetMapping("/{id}/report-cards/student/{studentId}")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'TEACHER', 'PARENT', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'VICE_PRINCIPAL', 'TEACHER', 'PARENT', 'STUDENT')")
     @Operation(summary = "Get published report card for student with row-level parent isolation check")
     public ResponseEntity<ApiResponse<ReportCardDto>> getReportCard(
             @PathVariable Long id,

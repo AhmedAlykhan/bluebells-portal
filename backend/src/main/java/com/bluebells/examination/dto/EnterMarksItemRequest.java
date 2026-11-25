@@ -13,6 +13,7 @@ public class EnterMarksItemRequest {
     @DecimalMin(value = "0.00", message = "Marks cannot be negative")
     private BigDecimal marksObtained;
 
+    @DecimalMin(value = "0.01", message = "Maximum marks must be greater than zero")
     private BigDecimal maxMarks = new BigDecimal("100.00");
     private boolean absent = false;
 

@@ -16,12 +16,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/api/v1/attendance")
 @Tag(name = "Attendance", description = "Student attendance recording, audit corrections, and monthly summaries")
@@ -36,7 +38,7 @@ public class AttendanceController {
     }
 
     @PostMapping("/mark")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'TEACHER') or hasAuthority('ATTENDANCE_RECORD')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'VICE_PRINCIPAL', 'TEACHER') or hasAuthority('ATTENDANCE_RECORD')")
     @Operation(summary = "Mark daily attendance for a section in bulk (rejects duplicates)")
     public ResponseEntity<ApiResponse<List<AttendanceRecordDto>>> recordAttendance(
             @Valid @RequestBody RecordSectionAttendanceRequest request,
@@ -63,7 +65,7 @@ public class AttendanceController {
     }
 
     @GetMapping("/section/{sectionId}")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'VICE_PRINCIPAL', 'TEACHER')")
     @Operation(summary = "Get daily attendance for a section on a specific date")
     public ResponseEntity<ApiResponse<List<AttendanceRecordDto>>> getSectionAttendance(
             @PathVariable Long sectionId,
@@ -74,7 +76,7 @@ public class AttendanceController {
     }
 
     @GetMapping("/student/{studentId}")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'TEACHER', 'PARENT', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'VICE_PRINCIPAL', 'TEACHER', 'PARENT', 'STUDENT')")
     @Operation(summary = "Get student attendance history with row-level parent isolation check")
     public ResponseEntity<ApiResponse<List<AttendanceRecordDto>>> getStudentAttendance(
             @PathVariable Long studentId,
@@ -92,7 +94,7 @@ public class AttendanceController {
     }
 
     @GetMapping("/student/{studentId}/summary")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'TEACHER', 'PARENT', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'VICE_PRINCIPAL', 'TEACHER', 'PARENT', 'STUDENT')")
     @Operation(summary = "Get aggregate student attendance metrics (present, absent, late, percentage)")
     public ResponseEntity<ApiResponse<AttendanceSummaryDto>> getStudentSummary(
             @PathVariable Long studentId,
@@ -110,7 +112,7 @@ public class AttendanceController {
     }
 
     @PutMapping("/{id}/correction")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL') or hasAuthority('ATTENDANCE_CORRECT')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL', 'VICE_PRINCIPAL') or hasAuthority('ATTENDANCE_CORRECT')")
     @Operation(summary = "Submit an attendance status correction with required audit justification")
     public ResponseEntity<ApiResponse<AttendanceRecordDto>> correctAttendance(
             @PathVariable Long id,

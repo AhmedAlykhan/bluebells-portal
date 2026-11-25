@@ -42,6 +42,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const handleUnauthorized = () => {
+      setUser(null);
+      setToken(null);
+      localStorage.removeItem('bluebells_token');
+      localStorage.removeItem('bluebells_user');
+      localStorage.setItem('bluebells_logged_out', 'true');
+    };
+
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    return () => {
+      window.removeEventListener('auth:unauthorized', handleUnauthorized);
+    };
+  }, []);
+
+  useEffect(() => {
     // If token exists, verify current user profile
     if (token) {
       apiClient.get<ApiResponse<User>>('/auth/me')

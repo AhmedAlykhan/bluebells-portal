@@ -125,30 +125,34 @@ export const ExaminationsPage: React.FC = () => {
         <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-4">
           BISE Hyderabad / Sindh Board Grading Scale Standard
         </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-6 gap-3 text-xs">
+        <div className="grid grid-cols-2 sm:grid-cols-7 gap-3 text-xs">
           <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
             <span className="font-black text-emerald-900 text-sm">A-1 (80% - 100%)</span>
-            <p className="text-emerald-700 text-[11px] mt-0.5">Distinction (4.00 GP)</p>
+            <p className="text-emerald-700 text-[11px] mt-0.5">Distinction</p>
           </div>
           <div className="p-3 rounded-xl bg-blue-50 border border-blue-200">
             <span className="font-black text-blue-900 text-sm">A (70% - 79.9%)</span>
-            <p className="text-blue-700 text-[11px] mt-0.5">Excellent (3.70 GP)</p>
+            <p className="text-blue-700 text-[11px] mt-0.5">Excellent</p>
+          </div>
+          <div className="p-3 rounded-xl bg-indigo-50 border border-indigo-200">
+            <span className="font-black text-indigo-900 text-sm">B (60% - 69.9%)</span>
+            <p className="text-indigo-700 text-[11px] mt-0.5">Good</p>
           </div>
           <div className="p-3 rounded-xl bg-purple-50 border border-purple-200">
-            <span className="font-black text-purple-900 text-sm">B (60% - 69.9%)</span>
-            <p className="text-purple-700 text-[11px] mt-0.5">Good (3.00 GP)</p>
+            <span className="font-black text-purple-900 text-sm">C (50% - 59.9%)</span>
+            <p className="text-purple-700 text-[11px] mt-0.5">Satisfactory</p>
           </div>
           <div className="p-3 rounded-xl bg-amber-50 border border-amber-200">
-            <span className="font-black text-amber-900 text-sm">C (50% - 59.9%)</span>
-            <p className="text-amber-700 text-[11px] mt-0.5">Satisfactory (2.00 GP)</p>
+            <span className="font-black text-amber-900 text-sm">D (40% - 49.9%)</span>
+            <p className="text-amber-700 text-[11px] mt-0.5">Fair</p>
           </div>
           <div className="p-3 rounded-xl bg-orange-50 border border-orange-200">
-            <span className="font-black text-orange-900 text-sm">D (40% - 49.9%)</span>
-            <p className="text-orange-700 text-[11px] mt-0.5">Pass (1.00 GP)</p>
+            <span className="font-black text-orange-900 text-sm">E (33% - 39.9%)</span>
+            <p className="text-orange-700 text-[11px] mt-0.5">Pass</p>
           </div>
           <div className="p-3 rounded-xl bg-red-50 border border-red-200">
-            <span className="font-black text-red-900 text-sm">F (&lt; 40%)</span>
-            <p className="text-red-700 text-[11px] mt-0.5">Fail (0.00 GP)</p>
+            <span className="font-black text-red-900 text-sm">F (&lt; 33%)</span>
+            <p className="text-red-700 text-[11px] mt-0.5">Fail</p>
           </div>
         </div>
       </div>
