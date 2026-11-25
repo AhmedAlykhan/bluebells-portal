@@ -128,18 +128,9 @@ public class AnalyticsService {
                     .collect(Collectors.toList());
         }
 
-        long totalActive = allStudents.stream()
-                .filter(s -> "ACTIVE".equalsIgnoreCase(s.getStatus()))
-                .count();
-
-        long withdrawals = allStudents.stream()
-                .filter(s -> "WITHDRAWN".equalsIgnoreCase(s.getStatus()) || "INACTIVE".equalsIgnoreCase(s.getStatus()))
-                .count();
-
-        // New admissions (e.g. registered in the last 6 months or current session)
-        long newAdmissions = allStudents.stream()
-                .filter(s -> s.getAdmissionDate() != null && s.getAdmissionDate().isAfter(LocalDate.now().minusMonths(6)))
-                .count();
+        long totalActive = studentRepository.countByStatus("ACTIVE");
+        long withdrawals = studentRepository.countByStatus("WITHDRAWN") + studentRepository.countByStatus("INACTIVE");
+        long newAdmissions = studentRepository.countByAdmissionDateAfter(LocalDate.now().minusMonths(6));
 
         // Class-wise strength
         Map<String, Long> classCounts = new LinkedHashMap<>();
@@ -173,10 +164,11 @@ public class AnalyticsService {
         }
 
         // Gender distribution
-        long maleCount = allStudents.stream().filter(s -> "MALE".equalsIgnoreCase(s.getGender())).count();
-        long femaleCount = allStudents.stream().filter(s -> "FEMALE".equalsIgnoreCase(s.getGender())).count();
-        long otherCount = allStudents.size() - (maleCount + femaleCount);
-        long totalStudentCount = allStudents.isEmpty() ? 1 : allStudents.size();
+        long maleCount = studentRepository.countByGender("MALE");
+        long femaleCount = studentRepository.countByGender("FEMALE");
+        long totalStudents = studentRepository.count();
+        long otherCount = Math.max(0, totalStudents - (maleCount + femaleCount));
+        long totalStudentCount = totalStudents == 0 ? 1 : totalStudents;
 
         List<GenderDistributionDto> genderList = new ArrayList<>();
         genderList.add(new GenderDistributionDto("MALE", maleCount,
@@ -185,15 +177,13 @@ public class AnalyticsService {
                 BigDecimal.valueOf(femaleCount * 100.0 / totalStudentCount).setScale(1, RoundingMode.HALF_UP)));
         if (otherCount > 0) {
             genderList.add(new GenderDistributionDto("OTHER", otherCount,
-                    BigDecimal.valueOf(otherCount * 100.0 / totalStudentCount).setScale(1, RoundingMode.HALF_UP)));
+                BigDecimal.valueOf(otherCount * 100.0 / totalStudentCount).setScale(1, RoundingMode.HALF_UP)));
         }
 
-        // Session comparison
+        // Session comparison (using direct count query per session instead of repeated table scans)
         List<SessionComparisonDto> sessionList = new ArrayList<>();
         for (AcademicSession sess : sessions) {
-            long count = enrollmentRepository.findAll().stream()
-                    .filter(e -> e.getAcademicSession() != null && e.getAcademicSession().getId().equals(sess.getId()))
-                    .count();
+            long count = enrollmentRepository.countByAcademicSessionId(sess.getId());
             sessionList.add(new SessionComparisonDto(sess.getName(), count));
         }
 
@@ -213,31 +203,16 @@ public class AnalyticsService {
     // =========================================================================
     @Transactional(readOnly = true)
     public AttendanceAnalyticsDto getAttendanceAnalytics(AnalyticsFilterDto filter) {
-        List<StudentAttendance> allAttendance = attendanceRepository.findAll();
-
-        // Filter by date range if provided
-        if (filter != null && filter.getStartDate() != null) {
-            allAttendance = allAttendance.stream()
-                    .filter(a -> !a.getAttendanceDate().isBefore(filter.getStartDate()))
-                    .collect(Collectors.toList());
-        }
-        if (filter != null && filter.getEndDate() != null) {
-            allAttendance = allAttendance.stream()
-                    .filter(a -> !a.getAttendanceDate().isAfter(filter.getEndDate()))
-                    .collect(Collectors.toList());
-        }
-
         LocalDate today = LocalDate.now();
-        List<StudentAttendance> todayRecords = allAttendance.stream()
-                .filter(a -> a.getAttendanceDate().equals(today))
-                .collect(Collectors.toList());
+        LocalDate startDate = (filter != null && filter.getStartDate() != null) ? filter.getStartDate() : today.minusDays(60);
+        LocalDate endDate = (filter != null && filter.getEndDate() != null) ? filter.getEndDate() : today;
+        List<StudentAttendance> allAttendance = attendanceRepository.findByAttendanceDateBetween(startDate, endDate);
 
-        long presentToday = todayRecords.stream().filter(a -> "PRESENT".equalsIgnoreCase(a.getStatus())).count();
-        long absentToday = todayRecords.stream().filter(a -> "ABSENT".equalsIgnoreCase(a.getStatus())).count();
-        long lateToday = todayRecords.stream().filter(a -> "LATE".equalsIgnoreCase(a.getStatus())).count();
-        long excusedToday = todayRecords.stream().filter(a -> "EXCUSED".equalsIgnoreCase(a.getStatus())).count();
-
-        long todayTotal = todayRecords.size();
+        long presentToday = attendanceRepository.countByAttendanceDateAndStatus(today, "PRESENT");
+        long absentToday = attendanceRepository.countByAttendanceDateAndStatus(today, "ABSENT");
+        long lateToday = attendanceRepository.countByAttendanceDateAndStatus(today, "LATE");
+        long excusedToday = attendanceRepository.countByAttendanceDateAndStatus(today, "EXCUSED");
+        long todayTotal = presentToday + absentToday + lateToday + excusedToday;
         BigDecimal todayRate = todayTotal > 0
                 ? BigDecimal.valueOf((presentToday + lateToday) * 100.0 / todayTotal).setScale(1, RoundingMode.HALF_UP)
                 : BigDecimal.valueOf(95.0);
@@ -403,16 +378,21 @@ public class AnalyticsService {
                 ? BigDecimal.valueOf(totalPercentSum / totalValidEntries).setScale(1, RoundingMode.HALF_UP)
                 : BigDecimal.valueOf(75.0);
 
-        // Class averages (join via student enrollment)
+        // Class averages (pre-load student-to-class lookup to avoid N+1 query bomb)
+        Map<Long, String> studentToClassName = enrollmentRepository.findAll().stream()
+                .filter(e -> e.getStudent() != null && e.getSection() != null && e.getSection().getClassEntity() != null)
+                .collect(Collectors.toMap(
+                        e -> e.getStudent().getId(),
+                        e -> e.getSection().getClassEntity().getName(),
+                        (existing, replacement) -> existing
+                ));
+
         Map<String, List<Double>> classScores = new HashMap<>();
         for (MarksEntry m : allMarks) {
-            if (!m.isAbsent() && m.getStudent() != null) {
-                List<Enrollment> enrollments = enrollmentRepository.findByStudentId(m.getStudent().getId());
-                if (!enrollments.isEmpty() && enrollments.get(0).getSection() != null && enrollments.get(0).getSection().getClassEntity() != null) {
-                    String cName = enrollments.get(0).getSection().getClassEntity().getName();
-                    double pct = m.getMarksObtained().doubleValue() * 100.0 / m.getMaxMarks().doubleValue();
-                    classScores.computeIfAbsent(cName, k -> new ArrayList<>()).add(pct);
-                }
+            if (!m.isAbsent() && m.getStudent() != null && m.getMaxMarks() != null && m.getMaxMarks().compareTo(BigDecimal.ZERO) > 0) {
+                String cName = studentToClassName.getOrDefault(m.getStudent().getId(), "Unknown");
+                double pct = m.getMarksObtained().doubleValue() * 100.0 / m.getMaxMarks().doubleValue();
+                classScores.computeIfAbsent(cName, k -> new ArrayList<>()).add(pct);
             }
         }
         List<ClassAverageDto> classAvgList = new ArrayList<>();
@@ -477,9 +457,7 @@ public class AnalyticsService {
 
             if (avg < 50.0 || failCount > 0) {
                 Student s = list.get(0).getStudent();
-                List<Enrollment> enrollments = enrollmentRepository.findByStudentId(s.getId());
-                String cName = !enrollments.isEmpty() && enrollments.get(0).getSection() != null && enrollments.get(0).getSection().getClassEntity() != null
-                        ? enrollments.get(0).getSection().getClassEntity().getName() : "N/A";
+                String cName = studentToClassName.getOrDefault(s.getId(), "N/A");
 
                 supportList.add(new StudentAcademicSupportDto(
                         s.getId(),
@@ -518,6 +496,15 @@ public class AnalyticsService {
         Map<String, BigDecimal> monthlyCollected = new LinkedHashMap<>();
         Map<String, BigDecimal[]> classCollections = new HashMap<>();
 
+        // Pre-load student-to-class lookup to avoid N+1 queries per invoice
+        Map<Long, String> studentToClassName = enrollmentRepository.findAll().stream()
+                .filter(e -> e.getStudent() != null && e.getSection() != null && e.getSection().getClassEntity() != null)
+                .collect(Collectors.toMap(
+                        e -> e.getStudent().getId(),
+                        e -> e.getSection().getClassEntity().getName(),
+                        (existing, replacement) -> existing
+                ));
+
         for (FeeInvoice inv : invoices) {
             totalBilled = totalBilled.add(inv.getTotalAmount());
             totalCollected = totalCollected.add(inv.getPaidAmount());
@@ -533,9 +520,7 @@ public class AnalyticsService {
 
             // Class grouping
             if (inv.getStudent() != null) {
-                List<Enrollment> enrollments = enrollmentRepository.findByStudentId(inv.getStudent().getId());
-                String cName = !enrollments.isEmpty() && enrollments.get(0).getSection() != null && enrollments.get(0).getSection().getClassEntity() != null
-                        ? enrollments.get(0).getSection().getClassEntity().getName() : "General";
+                String cName = studentToClassName.getOrDefault(inv.getStudent().getId(), "General");
 
                 BigDecimal[] arr = classCollections.computeIfAbsent(cName, k -> new BigDecimal[]{BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO});
                 arr[0] = arr[0].add(inv.getTotalAmount());

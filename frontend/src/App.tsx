@@ -1,3 +1,4 @@
+import { Suspense, lazy } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { AppLayout } from './components/layout/AppLayout';
 import { useAuth } from './context/AuthContext';
@@ -6,36 +7,45 @@ import { ForbiddenPage } from './components/auth/ForbiddenPage';
 import { PublicWebsite } from './pages/public/PublicWebsite';
 import { LoginPage } from './pages/LoginPage';
 
-// Role-specific Dashboards
-import { StudentDashboard } from './pages/dashboards/StudentDashboard';
-import { ParentDashboard } from './pages/dashboards/ParentDashboard';
-import { TeacherDashboard } from './pages/dashboards/TeacherDashboard';
-import { AccountantDashboard } from './pages/dashboards/AccountantDashboard';
-import { AdminDashboard } from './pages/dashboards/AdminDashboard';
-import { PrincipalDashboard } from './pages/dashboards/PrincipalDashboard';
-import { VicePrincipalDashboard } from './pages/dashboards/VicePrincipalDashboard';
+// Role-specific Dashboards (Code-split with dynamic imports)
+const StudentDashboard = lazy(() => import('./pages/dashboards/StudentDashboard').then(m => ({ default: m.StudentDashboard })));
+const ParentDashboard = lazy(() => import('./pages/dashboards/ParentDashboard').then(m => ({ default: m.ParentDashboard })));
+const TeacherDashboard = lazy(() => import('./pages/dashboards/TeacherDashboard').then(m => ({ default: m.TeacherDashboard })));
+const AccountantDashboard = lazy(() => import('./pages/dashboards/AccountantDashboard').then(m => ({ default: m.AccountantDashboard })));
+const AdminDashboard = lazy(() => import('./pages/dashboards/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
+const PrincipalDashboard = lazy(() => import('./pages/dashboards/PrincipalDashboard').then(m => ({ default: m.PrincipalDashboard })));
+const VicePrincipalDashboard = lazy(() => import('./pages/dashboards/VicePrincipalDashboard').then(m => ({ default: m.VicePrincipalDashboard })));
 
-// Module Pages
-import { 
-  AcademicsPage, 
-  AdmissionsPage, 
-  StudentsPage, 
-  StaffPage,
-  TimetablePage, 
-  AttendancePage, 
-  LmsPage, 
-  ExaminationsPage, 
-  FeesPage,
-  ReportsPage, 
-  AnalyticsPage,
-  StudentDevelopmentPage,
-  StudentIdCardsPage,
-  CertificatesPage,
-  SupportCentrePage,
-  IntegrationsPage,
-  SettingsPage 
-} from './pages/ModulePages';
-import { BulkDataImportPage } from './pages/admin/BulkDataImportPage';
+// Module Pages (Code-split with dynamic imports)
+const AcademicsPage = lazy(() => import('./pages/ModulePages').then(m => ({ default: m.AcademicsPage })));
+const AdmissionsPage = lazy(() => import('./pages/ModulePages').then(m => ({ default: m.AdmissionsPage })));
+const StudentsPage = lazy(() => import('./pages/ModulePages').then(m => ({ default: m.StudentsPage })));
+const StaffPage = lazy(() => import('./pages/ModulePages').then(m => ({ default: m.StaffPage })));
+const TimetablePage = lazy(() => import('./pages/ModulePages').then(m => ({ default: m.TimetablePage })));
+const AttendancePage = lazy(() => import('./pages/ModulePages').then(m => ({ default: m.AttendancePage })));
+const LmsPage = lazy(() => import('./pages/ModulePages').then(m => ({ default: m.LmsPage })));
+const ExaminationsPage = lazy(() => import('./pages/ModulePages').then(m => ({ default: m.ExaminationsPage })));
+const FeesPage = lazy(() => import('./pages/ModulePages').then(m => ({ default: m.FeesPage })));
+const ReportsPage = lazy(() => import('./pages/ModulePages').then(m => ({ default: m.ReportsPage })));
+const AnalyticsPage = lazy(() => import('./pages/ModulePages').then(m => ({ default: m.AnalyticsPage })));
+const StudentDevelopmentPage = lazy(() => import('./pages/ModulePages').then(m => ({ default: m.StudentDevelopmentPage })));
+const StudentIdCardsPage = lazy(() => import('./pages/ModulePages').then(m => ({ default: m.StudentIdCardsPage })));
+const CertificatesPage = lazy(() => import('./pages/ModulePages').then(m => ({ default: m.CertificatesPage })));
+const SupportCentrePage = lazy(() => import('./pages/ModulePages').then(m => ({ default: m.SupportCentrePage })));
+const IntegrationsPage = lazy(() => import('./pages/ModulePages').then(m => ({ default: m.IntegrationsPage })));
+const SettingsPage = lazy(() => import('./pages/ModulePages').then(m => ({ default: m.SettingsPage })));
+const BulkDataImportPage = lazy(() => import('./pages/admin/BulkDataImportPage').then(m => ({ default: m.BulkDataImportPage })));
+
+function PageFallback() {
+  return (
+    <div className="flex items-center justify-center min-h-[300px] py-16">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-8 h-8 border-3 border-[#2167B2] border-t-transparent rounded-full animate-spin" />
+        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Loading...</span>
+      </div>
+    </div>
+  );
+}
 
 /**
  * Dynamically resolves and renders the authoritative dashboard for the active role.
@@ -70,8 +80,9 @@ function RoleDashboardRouter() {
 
 export function App() {
   return (
-    <Routes>
-      {/* Public Landing & Institutional Showcase */}
+    <Suspense fallback={<PageFallback />}>
+      <Routes>
+        {/* Public Landing & Institutional Showcase */}
       <Route path="/welcome" element={<PublicWebsite />} />
 
       {/* Authentication Portal */}
@@ -274,6 +285,7 @@ export function App() {
         <Route path="*" element={<ForbiddenPage />} />
       </Route>
     </Routes>
+    </Suspense>
   );
 }
 

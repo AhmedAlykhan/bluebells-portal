@@ -91,6 +91,11 @@ public class StudentIdCardService {
 
     @Transactional
     public List<StudentIdCardDto> bulkGenerateAll(Long sessionId) {
+        return bulkGenerateAll(sessionId, 100);
+    }
+
+    @Transactional
+    public List<StudentIdCardDto> bulkGenerateAll(Long sessionId, int limit) {
         AcademicSession session;
         if (sessionId != null) {
             session = sessionRepository.findById(sessionId)
@@ -101,7 +106,10 @@ public class StudentIdCardService {
                             .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "No active academic session found")));
         }
 
-        List<Student> students = studentRepository.findAll();
+        int safeLimit = Math.min(Math.max(1, limit), 200);
+        org.springframework.data.domain.Page<Student> page = studentRepository.findAll(
+                org.springframework.data.domain.PageRequest.of(0, safeLimit, org.springframework.data.domain.Sort.by("id").ascending()));
+        List<Student> students = page.getContent();
         List<StudentIdCardDto> results = new ArrayList<>();
         for (Student s : students) {
             StudentIdCard card = cardRepository.findByStudentIdAndStatus(s.getId(), "ACTIVE")

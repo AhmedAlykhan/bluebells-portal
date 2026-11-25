@@ -53,6 +53,7 @@ public class Student {
     private String photoUrl;
 
     @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
+    @org.hibernate.annotations.BatchSize(size = 50)
     private List<Enrollment> enrollments = new ArrayList<>();
 
     @Version

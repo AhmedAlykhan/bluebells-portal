@@ -167,6 +167,15 @@ public class AttendanceService {
         );
         correctionRepository.save(correction);
 
+        String auditRemark = String.format("[Correction: %s -> %s by %s. Reason: %s]",
+                oldStatus, newStatus, user.getUsername(), request.getReason());
+        String existingRemarks = attendance.getRemarks();
+        if (existingRemarks != null && !existingRemarks.isBlank()) {
+            attendance.setRemarks(existingRemarks + " " + auditRemark);
+        } else {
+            attendance.setRemarks(auditRemark);
+        }
+
         attendance.setStatus(newStatus);
         StudentAttendance updated = attendanceRepository.save(attendance);
 

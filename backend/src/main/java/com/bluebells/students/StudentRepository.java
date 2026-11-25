@@ -16,13 +16,15 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
     boolean existsByAdmissionNumber(String admissionNumber);
 
     @Override
-    @EntityGraph(attributePaths = {"enrollments", "enrollments.section", "enrollments.section.classEntity"})
     Page<Student> findAll(Pageable pageable);
 
-    @EntityGraph(attributePaths = {"enrollments", "enrollments.section", "enrollments.section.classEntity"})
     @Query("SELECT s FROM Student s WHERE " +
            "LOWER(s.firstName) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
            "LOWER(s.lastName) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
            "LOWER(s.admissionNumber) LIKE LOWER(CONCAT('%', :query, '%'))")
     Page<Student> searchStudents(String query, Pageable pageable);
+
+    long countByStatus(String status);
+    long countByGender(String gender);
+    long countByAdmissionDateAfter(java.time.LocalDate date);
 }

@@ -314,14 +314,18 @@ public class ExamService {
     }
 
     private String determineGrade(BigDecimal percentage) {
-        return gradingScaleRepository.findScaleForPercentage(percentage)
+        if (percentage == null) return "F";
+        BigDecimal roundedPct = percentage.setScale(2, RoundingMode.HALF_UP);
+        return gradingScaleRepository.findScaleForPercentage(roundedPct)
                 .map(GradingScale::getGrade)
                 .orElseGet(() -> {
-                    if (percentage.compareTo(new BigDecimal("80.00")) >= 0) return "A+";
-                    if (percentage.compareTo(new BigDecimal("70.00")) >= 0) return "A";
-                    if (percentage.compareTo(new BigDecimal("60.00")) >= 0) return "B";
-                    if (percentage.compareTo(new BigDecimal("50.00")) >= 0) return "C";
-                    if (percentage.compareTo(new BigDecimal("40.00")) >= 0) return "D";
+                    // Sindh Board (BISE Hyderabad) Matriculation grading boundaries
+                    if (roundedPct.compareTo(new BigDecimal("80.00")) >= 0) return "A-1";
+                    if (roundedPct.compareTo(new BigDecimal("70.00")) >= 0) return "A";
+                    if (roundedPct.compareTo(new BigDecimal("60.00")) >= 0) return "B";
+                    if (roundedPct.compareTo(new BigDecimal("50.00")) >= 0) return "C";
+                    if (roundedPct.compareTo(new BigDecimal("40.00")) >= 0) return "D";
+                    if (roundedPct.compareTo(new BigDecimal("33.00")) >= 0) return "E";
                     return "F";
                 });
     }

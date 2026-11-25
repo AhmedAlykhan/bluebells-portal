@@ -1,6 +1,8 @@
 package com.bluebells.school;
 
 import com.bluebells.exception.ResourceNotFoundException;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +18,7 @@ public class SchoolProfileService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable("schoolProfile")
     public SchoolProfileDto getProfile() {
         SchoolProfile profile = schoolProfileRepository.findById(1L)
                 .orElseThrow(() -> new ResourceNotFoundException("SchoolProfile", "id", 1L));
@@ -23,6 +26,7 @@ public class SchoolProfileService {
     }
 
     @Transactional
+    @CacheEvict(value = "schoolProfile", allEntries = true)
     public SchoolProfileDto updateProfile(SchoolProfileDto dto) {
         SchoolProfile profile = schoolProfileRepository.findById(1L)
                 .orElse(new SchoolProfile());

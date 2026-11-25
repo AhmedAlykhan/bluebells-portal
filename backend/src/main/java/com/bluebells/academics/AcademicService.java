@@ -49,6 +49,7 @@ public class AcademicService {
 
     // Sessions & Terms
     @Transactional(readOnly = true)
+    @org.springframework.cache.annotation.Cacheable("academicSessions")
     public List<AcademicSessionDto> getSessions() {
         return sessionRepository.findAll().stream()
                 .map(AcademicSessionDto::fromEntity)
@@ -56,6 +57,7 @@ public class AcademicService {
     }
 
     @Transactional(readOnly = true)
+    @org.springframework.cache.annotation.Cacheable("academicSessions")
     public AcademicSessionDto getCurrentSession() {
         AcademicSession session = sessionRepository.findByCurrentTrue()
                 .orElseThrow(() -> new ResourceNotFoundException("No active academic session configured."));
@@ -63,6 +65,7 @@ public class AcademicService {
     }
 
     @Transactional
+    @org.springframework.cache.annotation.CacheEvict(value = "academicSessions", allEntries = true)
     public AcademicSessionDto createSession(CreateAcademicSessionRequest request) {
         if (sessionRepository.existsByName(request.getName())) {
             throw new ApiException("Academic session '" + request.getName() + "' already exists", HttpStatus.CONFLICT);
@@ -88,6 +91,7 @@ public class AcademicService {
     }
 
     @Transactional
+    @org.springframework.cache.annotation.CacheEvict(value = "academicSessions", allEntries = true)
     public AcademicSessionDto setCurrentSession(Long sessionId) {
         AcademicSession session = sessionRepository.findById(sessionId)
                 .orElseThrow(() -> new ResourceNotFoundException("AcademicSession", "id", sessionId));
@@ -113,6 +117,40 @@ public class AcademicService {
 
         if (request.getStartDate().isAfter(request.getEndDate())) {
             throw new ApiException("Term start date must precede end date", HttpStatus.BAD_REQUEST);
+        }
+
+        // Validate term dates fall within the academic session boundary
+        if (session.getStartDate() != null && session.getEndDate() != null) {
+            if (request.getStartDate().isBefore(session.getStartDate()) || request.getEndDate().isAfter(session.getEndDate())) {
+                throw new ApiException(
+                        String.format("Term dates (%s to %s) must fall within academic session boundaries (%s to %s)",
+                                request.getStartDate(), request.getEndDate(), session.getStartDate(), session.getEndDate()),
+                        HttpStatus.BAD_REQUEST);
+            }
+        }
+
+        // Validate that term date range does not overlap with existing terms in the session
+        List<Term> existingTerms = termRepository.findByAcademicSessionId(sessionId);
+        for (Term t : existingTerms) {
+            boolean overlaps = !(request.getEndDate().isBefore(t.getStartDate()) || request.getStartDate().isAfter(t.getEndDate()));
+            if (overlaps) {
+                throw new ApiException(
+                        String.format("Term date range (%s to %s) overlaps with existing term '%s' (%s to %s)",
+                                request.getStartDate(), request.getEndDate(), t.getName(), t.getStartDate(), t.getEndDate()),
+                        HttpStatus.CONFLICT);
+            }
+        }
+
+        // Validate cumulative weight does not exceed 100%
+        java.math.BigDecimal totalWeight = existingTerms.stream()
+                .map(Term::getWeightPercentage)
+                .filter(java.util.Objects::nonNull)
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+        java.math.BigDecimal newTotal = request.getWeightPercentage() != null ? totalWeight.add(request.getWeightPercentage()) : totalWeight;
+        if (newTotal.compareTo(new java.math.BigDecimal("100.00")) > 0) {
+            throw new ApiException(
+                    String.format("Cumulative term weight percentage (%s%%) cannot exceed 100%%", newTotal),
+                    HttpStatus.BAD_REQUEST);
         }
 
         Term term = new Term(

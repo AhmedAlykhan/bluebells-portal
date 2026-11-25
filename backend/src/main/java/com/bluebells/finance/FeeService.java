@@ -23,7 +23,9 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -214,22 +216,26 @@ public class FeeService {
 
         List<Enrollment> enrollments;
         if (request.getClassId() != null) {
-            enrollments = enrollmentRepository.findAll().stream()
-                    .filter(e -> "ACTIVE".equalsIgnoreCase(e.getEnrollmentStatus()) &&
-                                 e.getSection().getClassEntity().getId().equals(request.getClassId()) &&
-                                 e.getAcademicSession().getId().equals(session.getId()))
-                    .collect(Collectors.toList());
+            enrollments = enrollmentRepository.findByAcademicSessionIdAndSectionClassEntityIdAndEnrollmentStatus(
+                    session.getId(), request.getClassId(), "ACTIVE");
         } else {
-            enrollments = enrollmentRepository.findAll().stream()
-                    .filter(e -> "ACTIVE".equalsIgnoreCase(e.getEnrollmentStatus()) &&
-                                 e.getAcademicSession().getId().equals(session.getId()))
-                    .collect(Collectors.toList());
+            enrollments = enrollmentRepository.findByAcademicSessionIdAndEnrollmentStatus(
+                    session.getId(), "ACTIVE");
         }
+
+        // Pre-fetch all fee structures for this academic session to avoid N+1 queries
+        List<FeeStructure> allSessionStructures = structureRepository.findByAcademicSessionId(session.getId());
+        Map<Long, List<FeeStructure>> structuresByClass = allSessionStructures.stream()
+                .filter(fs -> fs.getClassEntity() != null)
+                .collect(Collectors.groupingBy(fs -> fs.getClassEntity().getId()));
 
         List<FeeInvoice> generated = new ArrayList<>();
 
         for (Enrollment enrollment : enrollments) {
             Student student = enrollment.getStudent();
+            if (enrollment.getSection() == null || enrollment.getSection().getClassEntity() == null) {
+                continue;
+            }
             Long classId = enrollment.getSection().getClassEntity().getId();
 
             // Skip if invoice already generated for this student and billing month
@@ -239,9 +245,7 @@ public class FeeService {
                 continue;
             }
 
-            List<FeeStructure> classStructures = structureRepository.findByAcademicSessionIdAndClassEntityId(
-                    session.getId(), classId);
-
+            List<FeeStructure> classStructures = structuresByClass.getOrDefault(classId, Collections.emptyList());
             if (classStructures.isEmpty()) {
                 continue;
             }
