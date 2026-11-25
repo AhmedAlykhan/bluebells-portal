@@ -95,7 +95,7 @@ public class DataImportPermissionService {
 
         User saved = userRepository.save(targetUser);
 
-        auditService.logAudit(null, "PERMISSIONS_GRANTED", "SUCCESS",
+        auditService.logAudit(null, grantedBy, "PERMISSIONS_GRANTED", "SUCCESS",
                 String.format("Granted permissions [%s] to user %s (ID: %d) by %s",
                         String.join(", ", request.getPermissionCodes()),
                         targetUser.getUsername(), targetUser.getId(),
@@ -115,7 +115,7 @@ public class DataImportPermissionService {
 
         User saved = userRepository.save(targetUser);
 
-        auditService.logAudit(null, "PERMISSIONS_REVOKED", "SUCCESS",
+        auditService.logAudit(null, revokedBy, "PERMISSIONS_REVOKED", "SUCCESS",
                 String.format("Revoked permissions [%s] from user %s (ID: %d) by %s",
                         String.join(", ", request.getPermissionCodes()),
                         targetUser.getUsername(), targetUser.getId(),

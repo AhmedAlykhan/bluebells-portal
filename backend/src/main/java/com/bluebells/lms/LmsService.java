@@ -52,6 +52,7 @@ public class LmsService {
     private final EnrollmentRepository enrollmentRepository;
     private final FileStorageService fileStorageService;
     private final NotificationService notificationService;
+    private final com.bluebells.guardians.GuardianService guardianService;
 
     private static final Pattern YOUTUBE_PATTERN = Pattern.compile(
             "(?:https?:\\/\\/)?(?:www\\.)?(?:youtube\\.com\\/(?:watch\\?v=|embed\\/|v\\/|shorts\\/)|youtu\\.be\\/)([a-zA-Z0-9_-]{11})"
@@ -73,7 +74,8 @@ public class LmsService {
             StudentRepository studentRepository,
             EnrollmentRepository enrollmentRepository,
             FileStorageService fileStorageService,
-            NotificationService notificationService) {
+            NotificationService notificationService,
+            com.bluebells.guardians.GuardianService guardianService) {
         this.courseRepository = courseRepository;
         this.moduleRepository = moduleRepository;
         this.lessonRepository = lessonRepository;
@@ -90,6 +92,7 @@ public class LmsService {
         this.enrollmentRepository = enrollmentRepository;
         this.fileStorageService = fileStorageService;
         this.notificationService = notificationService;
+        this.guardianService = guardianService;
     }
 
     // =========================================================================
@@ -720,5 +723,72 @@ public class LmsService {
                 .orElseThrow(() -> new ResourceNotFoundException(
                         String.format("Submission not found for assignment %d and student %d", assignmentId, studentId)));
         return AssignmentSubmissionDto.fromEntity(submission);
+    }
+
+    @Transactional(readOnly = true)
+    public void validateFileAccess(String relativePath, UserPrincipal currentUser) {
+        if (currentUser == null) {
+            throw new ForbiddenException("Authentication required to access files");
+        }
+
+        boolean isAdmin = currentUser.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().contains("ADMIN") || a.getAuthority().contains("PRINCIPAL"));
+        if (isAdmin) {
+            return;
+        }
+
+        // 1. Check if file is an assignment submission file
+        Optional<SubmissionFile> subFileOpt = submissionFileRepository.findByFilePath(relativePath);
+        if (subFileOpt.isPresent()) {
+            AssignmentSubmission submission = subFileOpt.get().getSubmission();
+            // A. Student who submitted the file
+            if (submission.getStudent() != null && submission.getStudent().getUser() != null) {
+                if (submission.getStudent().getUser().getId().equals(currentUser.getId())) {
+                    return;
+                }
+            }
+            // B. Parent of the submitting student
+            if (submission.getStudent() != null && guardianService.isParentOfStudent(currentUser.getId(), submission.getStudent().getId())) {
+                return;
+            }
+            // C. Assigned teacher of the course
+            User teacher = submission.getAssignment().getCourse().getTeacher();
+            if (teacher != null && teacher.getId().equals(currentUser.getId())) {
+                return;
+            }
+            throw new ForbiddenException("Access denied: You are not authorized to view this submission file");
+        }
+
+        // 2. Check if file is a course learning resource
+        Optional<LearningResource> resourceOpt = resourceRepository.findByFilePath(relativePath);
+        if (resourceOpt.isPresent()) {
+            Course course = resourceOpt.get().getCourse();
+            // A. Teacher of the course
+            if (course.getTeacher() != null && course.getTeacher().getId().equals(currentUser.getId())) {
+                return;
+            }
+            // B. Student enrolled in the course's section
+            Optional<Student> studentOpt = studentRepository.findByUserId(currentUser.getId());
+            if (studentOpt.isPresent()) {
+                boolean isEnrolled = enrollmentRepository.findByStudentId(studentOpt.get().getId()).stream()
+                        .anyMatch(e -> e.getSection() != null && course.getSection() != null && e.getSection().getId().equals(course.getSection().getId()));
+                if (isEnrolled) {
+                    return;
+                }
+            }
+            // C. Parent whose child is enrolled in this section
+            List<com.bluebells.students.dto.StudentDto> children = guardianService.getMyChildren(currentUser);
+            boolean childEnrolled = children.stream().anyMatch(ch ->
+                    enrollmentRepository.findByStudentId(ch.getId()).stream()
+                            .anyMatch(e -> e.getSection() != null && course.getSection() != null && e.getSection().getId().equals(course.getSection().getId()))
+            );
+            if (childEnrolled) {
+                return;
+            }
+            throw new ForbiddenException("Access denied: You are not enrolled in the course for this resource");
+        }
+
+        // 3. File not in LMS records or unauthorized
+        throw new ForbiddenException("Access denied: File not found or unauthorized access attempt");
     }
 }

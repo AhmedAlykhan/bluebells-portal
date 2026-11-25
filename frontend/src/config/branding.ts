@@ -136,12 +136,12 @@ export const BLUEBELLS_BRANDING: SchoolBranding = {
   banking: {
     primaryBank: 'Bank Alfalah Limited',
     accountTitle: 'Bluebells Schooling System',
-    accountNumber: '5512-0010048291',
-    branchCode: '0482',
-    branchName: 'Autobahn Road Branch, Latifabad, Hyderabad',
-    iban: 'PK42ALFH04820055120010048291',
-    secondaryBank: 'Meezan Bank Limited (Latifabad Unit 7 Branch)',
-    oneBillPrefix: '100482',
+    accountNumber: import.meta.env.VITE_BANK_ACCOUNT_NUMBER || '0000-0000000000',
+    branchCode: '0000',
+    branchName: 'Latifabad Branch, Hyderabad',
+    iban: import.meta.env.VITE_BANK_IBAN || 'PK00ALFH0000000000000000',
+    secondaryBank: 'Meezan Bank Limited',
+    oneBillPrefix: import.meta.env.VITE_ONEBILL_PREFIX || '000000',
   },
   colors: {
     navy: '#123B70',

@@ -7,6 +7,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -33,6 +35,9 @@ public class SecurityConfig {
     private final JwtAuthenticationEntryPoint unauthorizedHandler;
     private final CustomAccessDeniedHandler accessDeniedHandler;
 
+    @Value("${bluebells.cors.allowed-origins:https://bluebells-portal.vercel.app}")
+    private String allowedOriginsConfig;
+
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthenticationFilter,
             JwtAuthenticationEntryPoint unauthorizedHandler,
@@ -55,7 +60,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(unauthorizedHandler)
@@ -72,7 +77,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/id-cards/verify/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/admissions/applications").permitAll()
                         .requestMatchers("/actuator/**").hasRole("SUPER_ADMIN")
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                        // SEC-09: Restrict Swagger & OpenAPI documentation in production to Super Admin
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").hasRole("SUPER_ADMIN")
                         // All other APIs require authentication
                         .requestMatchers("/api/v1/**").authenticated()
                         .anyRequest().authenticated()
@@ -85,14 +91,18 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(Arrays.asList(
-                "http://localhost:[*]",
-                "http://127.0.0.1:[*]",
-                "https://*.vercel.app",
-                "https://*.netlify.app",
-                "https://*.onrender.com",
-                "https://*.pages.dev"
-        ));
+        java.util.List<String> origins = new java.util.ArrayList<>();
+        origins.add("http://localhost:[*]");
+        origins.add("http://127.0.0.1:[*]");
+        if (allowedOriginsConfig != null && !allowedOriginsConfig.isBlank()) {
+            for (String origin : allowedOriginsConfig.split(",")) {
+                String trimmed = origin.trim();
+                if (!trimmed.isEmpty() && !trimmed.equals("*")) {
+                    origins.add(trimmed);
+                }
+            }
+        }
+        configuration.setAllowedOriginPatterns(origins);
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept"));
         configuration.setExposedHeaders(List.of("Authorization"));

@@ -112,18 +112,21 @@ public class CertificateService {
                 .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "No active academic session"));
 
         List<Enrollment> enrollments = enrollmentRepository.findByStudentId(student.getId());
-        String cName = "Class 10";
-        String secName = "Section A";
-        if (!enrollments.isEmpty() && enrollments.get(0).getSection() != null) {
-            secName = enrollments.get(0).getSection().getName();
-            if (enrollments.get(0).getSection().getClassEntity() != null) {
-                cName = enrollments.get(0).getSection().getClassEntity().getName();
-            }
+        if (enrollments.isEmpty() || enrollments.get(0).getSection() == null) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Cannot issue certificate: Student is not actively enrolled in any class or section");
         }
+        String secName = enrollments.get(0).getSection().getName();
+        String cName = enrollments.get(0).getSection().getClassEntity() != null
+                ? enrollments.get(0).getSection().getClassEntity().getName()
+                : "Active Class";
 
         List<GuardianStudentLink> links = guardianLinkRepository.findByStudentId(student.getId());
         String guardianName = (!links.isEmpty() && links.get(0).getGuardian() != null)
-                ? links.get(0).getGuardian().getFullName() : "Mohammad Tariq Khan";
+                ? links.get(0).getGuardian().getFullName()
+                : null;
+        if (guardianName == null || guardianName.isBlank()) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "Cannot issue certificate: Student has no registered guardian");
+        }
 
         CertificateTemplate template = null;
         if (req.getTemplateId() != null) {

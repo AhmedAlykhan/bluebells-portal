@@ -250,9 +250,9 @@ public class StudentIdCardService {
     private StudentIdCardDto mapToDto(StudentIdCard c) {
         Student s = c.getStudent();
         List<Enrollment> enrollments = enrollmentRepository.findByStudentId(s.getId());
-        String cName = "Class 10";
-        String secName = "Section A";
-        String roll = "10-A-01";
+        String cName = "Not Enrolled";
+        String secName = "Not Assigned";
+        String roll = "N/A";
         if (!enrollments.isEmpty()) {
             Enrollment e = enrollments.get(0);
             if (e.getSection() != null) {
@@ -261,12 +261,14 @@ public class StudentIdCardService {
                     cName = e.getSection().getClassEntity().getName();
                 }
             }
-            if (e.getRollNumber() != null) roll = e.getRollNumber();
+            if (e.getRollNumber() != null && !e.getRollNumber().isBlank()) {
+                roll = e.getRollNumber();
+            }
         }
 
         // Guardian / Father Name
         List<GuardianStudentLink> links = guardianLinkRepository.findByStudentId(s.getId());
-        String fatherName = "Mohammad Tariq Khan";
+        String fatherName = "N/A";
         if (!links.isEmpty() && links.get(0).getGuardian() != null) {
             fatherName = links.get(0).getGuardian().getFullName();
         }
@@ -281,8 +283,11 @@ public class StudentIdCardService {
         dto.setSectionName(secName);
         dto.setRollNumber(roll);
         dto.setAcademicSession(c.getAcademicSession().getName());
-        dto.setBloodGroup(s.getBloodGroup() != null ? s.getBloodGroup() : "B+");
-        dto.setEmergencyContact((s.getUser() != null && s.getUser().getPhoneNumber() != null) ? s.getUser().getPhoneNumber() : "+92 316 9681932");
+        // SEC-11: Never fabricate medical blood group — return actual blood group or "N/A"
+        dto.setBloodGroup(s.getBloodGroup() != null && !s.getBloodGroup().isBlank() ? s.getBloodGroup() : "N/A");
+        dto.setEmergencyContact((s.getUser() != null && s.getUser().getPhoneNumber() != null && !s.getUser().getPhoneNumber().isBlank())
+                ? s.getUser().getPhoneNumber()
+                : "+92 316 9681932");
         dto.setCardNumber(c.getCardNumber());
         dto.setIssueDate(c.getIssueDate());
         dto.setExpiryDate(c.getExpiryDate());

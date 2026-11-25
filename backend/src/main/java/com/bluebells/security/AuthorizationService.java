@@ -120,26 +120,24 @@ public class AuthorizationService {
             return;
         }
 
-        // 4. Teacher: verify teacher teaches the student's section or class
+        // 4. Teacher: verify teacher teaches the student's section or class (SEC-05 fail-closed)
         if (isTeacher(principal)) {
-            Optional<Staff> staffOpt = staffRepository.findByUserId(principal.getId());
-            if (staffOpt.isPresent()) {
-                boolean hasAssignments = teacherAssignmentRepository.findAll().stream()
-                        .anyMatch(ta -> ta.getTeacher().getId().equals(staffOpt.get().getId()));
-                if (!hasAssignments) {
-                    return;
-                }
-                List<Enrollment> enrollments = enrollmentRepository.findByStudentId(targetStudentId);
-                boolean teachesSection = enrollments.stream().anyMatch(e ->
-                        teacherAssignmentRepository.findBySectionIdAndAcademicSessionId(e.getSection().getId(), e.getAcademicSession().getId())
-                                .stream().anyMatch(ta -> ta.getTeacher().getId().equals(staffOpt.get().getId()))
-                );
-                if (teachesSection) {
-                    return;
-                }
-                throw new ForbiddenException("Access denied: Teachers can only access students enrolled in their assigned classes");
+            Long teacherUserId = principal.getId();
+            List<Enrollment> enrollments = enrollmentRepository.findByStudentId(targetStudentId);
+            if (enrollments.isEmpty()) {
+                throw new ForbiddenException("Access denied: Student has no active enrollments");
             }
-            return;
+
+            boolean teachesSection = enrollments.stream().anyMatch(e ->
+                    teacherAssignmentRepository.findBySectionIdAndAcademicSessionId(
+                            e.getSection().getId(), e.getAcademicSession().getId())
+                            .stream().anyMatch(ta -> ta.getTeacher() != null && ta.getTeacher().getId().equals(teacherUserId))
+            );
+
+            if (teachesSection) {
+                return;
+            }
+            throw new ForbiddenException("Access denied: Teachers can only access students enrolled in their assigned classes");
         }
 
         throw new ForbiddenException("Access denied: Unauthorized role for student record access");
@@ -193,23 +191,16 @@ public class AuthorizationService {
             return;
         }
 
+        // SEC-05: Strict fail-closed verification that teacher is assigned to this section
         if (isTeacher(principal)) {
-            Optional<Staff> staffOpt = staffRepository.findByUserId(principal.getId());
-            if (staffOpt.isPresent()) {
-                boolean hasAssignments = teacherAssignmentRepository.findAll().stream()
-                        .anyMatch(ta -> ta.getTeacher().getId().equals(staffOpt.get().getId()));
-                if (!hasAssignments) {
-                    return;
-                }
-                boolean isAssigned = teacherAssignmentRepository.findAll().stream()
-                        .anyMatch(ta -> ta.getTeacher().getId().equals(staffOpt.get().getId()) &&
-                                       ta.getSection().getId().equals(sectionId));
-                if (isAssigned) {
-                    return;
-                }
-                throw new ForbiddenException("Access denied: Teachers can only mark attendance for classes assigned to them");
+            Long teacherUserId = principal.getId();
+            boolean isAssigned = teacherAssignmentRepository.findAll().stream()
+                    .anyMatch(ta -> ta.getTeacher() != null && ta.getTeacher().getId().equals(teacherUserId) &&
+                                   ta.getSection() != null && ta.getSection().getId().equals(sectionId));
+            if (isAssigned) {
+                return;
             }
-            return;
+            throw new ForbiddenException("Access denied: Teachers can only mark attendance for classes assigned to them");
         }
 
         throw new ForbiddenException("Access denied: Only authorized teachers and school administrators can mark attendance");

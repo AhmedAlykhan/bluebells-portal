@@ -8,4 +8,5 @@ import java.util.List;
 @Repository
 public interface SubmissionFileRepository extends JpaRepository<SubmissionFile, Long> {
     List<SubmissionFile> findBySubmissionIdOrderByUploadOrderAsc(Long submissionId);
+    java.util.Optional<SubmissionFile> findByFilePath(String filePath);
 }

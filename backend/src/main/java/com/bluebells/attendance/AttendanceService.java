@@ -65,6 +65,13 @@ public class AttendanceService {
             Enrollment enrollment = enrollmentRepository.findById(item.getEnrollmentId())
                     .orElseThrow(() -> new ResourceNotFoundException("Enrollment not found with id: " + item.getEnrollmentId()));
 
+            // SEC-06: Prevent cross-section attendance injection
+            if (enrollment.getSection() == null || !enrollment.getSection().getId().equals(request.getSectionId())) {
+                throw new ApiException(HttpStatus.BAD_REQUEST,
+                        String.format("Cross-section attendance injection blocked: Enrollment ID %d does not belong to requested section %d",
+                                enrollment.getId(), request.getSectionId()));
+            }
+
             StudentAttendance record = new StudentAttendance(
                     enrollment,
                     date,

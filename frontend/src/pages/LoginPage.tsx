@@ -25,8 +25,8 @@ interface LoginPageProps {
 export const LoginPage: React.FC<LoginPageProps> = ({ schoolProfile }) => {
   const navigate = useNavigate();
   const { login, isLoading, error } = useAuth();
-  const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('Admin@12345');
+  const [username, setUsername] = useState(import.meta.env.DEV ? 'admin' : '');
+  const [password, setPassword] = useState(import.meta.env.DEV ? 'Admin@12345' : '');
   const [showPassword, setShowPassword] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
 
@@ -197,37 +197,39 @@ export const LoginPage: React.FC<LoginPageProps> = ({ schoolProfile }) => {
             </button>
           </form>
 
-          {/* Quick Persona Switcher for pair-programming and evaluations */}
-          <div className="mt-8 pt-6 border-t border-slate-100">
-            <div className="text-center mb-3">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
-                Or Quick Switch Demo Role
-              </span>
-            </div>
+          {/* Quick Persona Switcher - Only visible in local development (SEC-08) */}
+          {import.meta.env.DEV && (
+            <div className="mt-8 pt-6 border-t border-slate-100">
+              <div className="text-center mb-3">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
+                  Or Quick Switch Demo Role
+                </span>
+              </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {personas.map((p) => {
-                const Icon = p.icon;
-                return (
-                  <button
-                    key={p.user}
-                    type="button"
-                    onClick={() => handleQuickLogin(p.user)}
-                    className={`p-2.5 rounded-xl border text-left flex items-start gap-2.5 transition-all ${p.color}`}
-                  >
-                    <div className="p-2 rounded-lg bg-white shadow-sm flex-shrink-0">
-                      <Icon className="w-4 h-4" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-bold text-slate-800 leading-tight">{p.role}</p>
-                      <p className="text-[10px] text-slate-500 truncate mt-0.5">{p.desc}</p>
-                      <p className="text-[9px] font-mono font-semibold text-slate-400 mt-0.5">user: {p.user}</p>
-                    </div>
-                  </button>
-                );
-              })}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                {personas.map((p) => {
+                  const Icon = p.icon;
+                  return (
+                    <button
+                      key={p.user}
+                      type="button"
+                      onClick={() => handleQuickLogin(p.user)}
+                      className={`p-2.5 rounded-xl border text-left flex items-start gap-2.5 transition-all ${p.color}`}
+                    >
+                      <div className="p-2 rounded-lg bg-white shadow-sm flex-shrink-0">
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-xs font-bold text-slate-800 leading-tight">{p.role}</p>
+                        <p className="text-[10px] text-slate-500 truncate mt-0.5">{p.desc}</p>
+                        <p className="text-[9px] font-mono font-semibold text-slate-400 mt-0.5">user: {p.user}</p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         <div className="text-center text-xs text-slate-400 mt-6 space-y-1">

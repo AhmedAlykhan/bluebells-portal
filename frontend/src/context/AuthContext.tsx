@@ -85,6 +85,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const switchPersona = async (username: string): Promise<void> => {
+    if (!import.meta.env.DEV) {
+      throw new Error('Role switching is disabled in production environments');
+    }
     return login(username, 'Admin@12345');
   };
 

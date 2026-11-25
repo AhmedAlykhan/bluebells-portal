@@ -368,12 +368,16 @@ public class LmsController {
     @Operation(summary = "Securely stream or preview an authorized document or image")
     public ResponseEntity<Resource> streamFile(
             @RequestParam("path") String filePath,
-            @RequestParam(value = "download", defaultValue = "false") boolean download) {
+            @RequestParam(value = "download", defaultValue = "false") boolean download,
+            @org.springframework.security.core.annotation.AuthenticationPrincipal com.bluebells.security.UserPrincipal currentUser) {
 
         // Remove any leading slash or storage prefix if present
         String sanitizedPath = filePath.startsWith("/storage/uploads/")
                 ? filePath.substring("/storage/uploads/".length())
                 : (filePath.startsWith("storage/uploads/") ? filePath.substring("storage/uploads/".length()) : filePath);
+
+        // SEC-02: Strictly validate file ownership and enrollment before streaming
+        lmsService.validateFileAccess(sanitizedPath, currentUser);
 
         Resource resource = fileStorageService.loadFileAsResource(sanitizedPath);
 

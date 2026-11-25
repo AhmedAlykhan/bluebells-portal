@@ -128,15 +128,26 @@ public class DataImportValidationService {
         String jobId = "JOB-" + System.currentTimeMillis() + "-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
 
         try {
-            Path targetDir = Paths.get(uploadBaseDir, jobId);
+            // SEC-03: Strip directory paths and sanitize filename to prevent path traversal
+            String safeFilename = Paths.get(originalFilename != null ? originalFilename : "import_file").getFileName().toString();
+            if (safeFilename.contains("..") || safeFilename.contains("/") || safeFilename.contains("\\")) {
+                throw new IllegalArgumentException("Invalid file name: path traversal characters detected");
+            }
+
+            Path targetDir = Paths.get(uploadBaseDir, jobId).toAbsolutePath().normalize();
             Files.createDirectories(targetDir);
-            Path targetFile = targetDir.resolve(originalFilename);
+            Path targetFile = targetDir.resolve(safeFilename).normalize();
+
+            if (!targetFile.startsWith(targetDir)) {
+                throw new IllegalArgumentException("Path traversal attempt detected in uploaded file name");
+            }
+
             Files.copy(file.getInputStream(), targetFile, StandardCopyOption.REPLACE_EXISTING);
 
             DataImportJob job = new DataImportJob();
             job.setJobId(jobId);
             job.setImportType(normalizedType);
-            job.setOriginalFilename(originalFilename);
+            job.setOriginalFilename(safeFilename);
             job.setFileFormat(format);
             job.setFileSizeBytes(file.getSize());
             job.setFilePath(targetFile.toAbsolutePath().toString());

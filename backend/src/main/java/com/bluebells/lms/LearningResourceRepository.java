@@ -10,4 +10,5 @@ public interface LearningResourceRepository extends JpaRepository<LearningResour
     List<LearningResource> findByCourseId(Long courseId);
     List<LearningResource> findByModuleId(Long moduleId);
     List<LearningResource> findByLessonId(Long lessonId);
+    java.util.Optional<LearningResource> findByFilePath(String filePath);
 }

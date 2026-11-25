@@ -25,11 +25,13 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final LoginAttemptService loginAttemptService;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider) {
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider, LoginAttemptService loginAttemptService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.loginAttemptService = loginAttemptService;
     }
 
     @Transactional
@@ -50,25 +52,14 @@ public class AuthService {
             throw new UnauthorizedException("Account is not active. Please contact the administrator.");
         }
 
-        // Validate password
+        // Validate password - SEC-04: Persist failed attempt counter in REQUIRES_NEW transaction before throwing
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            int failedAttempts = user.getFailedLoginAttempts() + 1;
-            user.setFailedLoginAttempts(failedAttempts);
-
-            if (failedAttempts >= MAX_FAILED_ATTEMPTS) {
-                user.setLockedUntil(Instant.now().plus(LOCK_DURATION));
-                log.warn("Account locked for 15 minutes due to 5 failed attempts: {}", user.getUsername());
-            }
-
-            userRepository.save(user);
+            loginAttemptService.recordFailedAttempt(user.getId());
             throw new UnauthorizedException("Invalid username or password");
         }
 
-        // Success: Reset failed attempts & update last login
-        user.setFailedLoginAttempts(0);
-        user.setLockedUntil(null);
-        user.setLastLoginAt(Instant.now());
-        userRepository.save(user);
+        // Success: Reset failed attempts & update last login in isolated transaction
+        loginAttemptService.resetFailedAttempts(user.getId());
 
         UserPrincipal principal = UserPrincipal.create(user);
         String token = jwtTokenProvider.generateToken(principal);
