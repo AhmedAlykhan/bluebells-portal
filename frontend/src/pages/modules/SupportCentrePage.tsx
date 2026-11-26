@@ -79,7 +79,7 @@ export const SupportCentrePage: React.FC = () => {
 
   const fetchTickets = () => {
     setLoading(true);
-    const params: any = {};
+    const params: Record<string, string> = {};
     if (filterCategory !== 'ALL') params.category = filterCategory;
     if (filterStatus !== 'ALL') params.status = filterStatus;
 

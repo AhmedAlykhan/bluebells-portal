@@ -61,8 +61,8 @@ public class TimetableController {
     @DeleteMapping("/slots/{id}")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL')")
     @Operation(summary = "Delete a timetable slot")
-    public ResponseEntity<ApiResponse<Void>> deleteSlot(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteSlot(@PathVariable Long id) {
         timetableService.deleteSlot(id);
-        return ResponseEntity.ok(ApiResponse.success("Timetable slot deleted successfully"));
+        return ResponseEntity.noContent().build();
     }
 }

@@ -5,6 +5,7 @@ import com.bluebells.support.dto.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -45,7 +46,8 @@ public class SupportTicketController {
     @Operation(summary = "Open a new support or complaint ticket")
     public ResponseEntity<ApiResponse<SupportTicketDto>> createTicket(@Valid @RequestBody CreateTicketRequest req) {
         SupportTicketDto ticket = ticketService.createTicket(req);
-        return ResponseEntity.ok(ApiResponse.success("Ticket submitted successfully", ticket));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Ticket submitted successfully", ticket));
     }
 
     @PostMapping("/tickets/{id}/messages")
@@ -55,7 +57,8 @@ public class SupportTicketController {
             @PathVariable Long id,
             @Valid @RequestBody ReplyTicketRequest req) {
         SupportTicketMessageDto msg = ticketService.addMessage(id, req);
-        return ResponseEntity.ok(ApiResponse.success("Message sent", msg));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Message sent", msg));
     }
 
     @PatchMapping("/tickets/{id}/status")

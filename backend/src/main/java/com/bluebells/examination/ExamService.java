@@ -30,6 +30,8 @@ import java.util.stream.Collectors;
 @Service
 public class ExamService {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ExamService.class);
+
     private final ExamRepository examRepository;
     private final GradingScaleRepository gradingScaleRepository;
     private final MarksEntryRepository marksEntryRepository;
@@ -186,6 +188,9 @@ public class ExamService {
             savedEntries.add(marksEntryRepository.save(entry));
         }
 
+        log.info("Exam marks recorded: examId={}, subjectId={}, studentCount={}, recordedBy={}",
+                exam.getId(), subject.getId(), savedEntries.size(), currentUser.getUsername());
+
         return savedEntries.stream().map(MarksEntryDto::fromEntity).collect(Collectors.toList());
     }
 
@@ -278,6 +283,8 @@ public class ExamService {
 
         exam.setStatus("PUBLISHED");
         Exam savedExam = examRepository.save(exam);
+
+        log.info("Exam results published: examId={}, reportCardsGenerated={}", exam.getId(), generatedReportCards.size());
 
         return ExamDto.fromEntity(savedExam);
     }

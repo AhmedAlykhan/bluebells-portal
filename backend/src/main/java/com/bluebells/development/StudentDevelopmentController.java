@@ -6,13 +6,16 @@ import com.bluebells.development.dto.StudentDevelopmentDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/api/v1/development")
 @Tag(name = "Student Development Centre", description = "Co-curricular, sports, competitions, awards and milestones")
@@ -37,7 +40,8 @@ public class StudentDevelopmentController {
     @Operation(summary = "Record new achievement, sports award, or milestone")
     public ResponseEntity<ApiResponse<StudentDevelopmentDto>> createRecord(@Valid @RequestBody CreateDevelopmentRecordRequest req) {
         StudentDevelopmentDto created = developmentService.createRecord(req);
-        return ResponseEntity.ok(ApiResponse.success("Achievement recorded successfully", created));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Achievement recorded successfully", created));
     }
 
     @PostMapping("/records/{id}/upload-evidence")
@@ -81,8 +85,8 @@ public class StudentDevelopmentController {
     @DeleteMapping("/records/{id}")
     @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SCHOOL_ADMIN', 'PRINCIPAL') or hasAuthority('STUDENT_DEVELOPMENT_EDIT')")
     @Operation(summary = "Delete an achievement record")
-    public ResponseEntity<ApiResponse<Void>> deleteRecord(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteRecord(@PathVariable Long id) {
         developmentService.deleteRecord(id);
-        return ResponseEntity.ok(ApiResponse.success("Record deleted", null));
+        return ResponseEntity.noContent().build();
     }
 }

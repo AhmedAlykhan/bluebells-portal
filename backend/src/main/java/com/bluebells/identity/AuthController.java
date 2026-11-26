@@ -7,8 +7,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+@Validated
 @RestController
 @RequestMapping("/api/v1/auth")
 @Tag(name = "Authentication", description = "Authentication and session operations")
@@ -47,5 +49,16 @@ public class AuthController {
         }
         authService.changePassword(principal, request);
         return ResponseEntity.ok(ApiResponse.success("Password changed successfully", null));
+    }
+
+    @PostMapping("/refresh")
+    @Operation(summary = "Refresh JWT bearer token for authenticated user")
+    public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(
+            @AuthenticationPrincipal UserPrincipal principal) {
+        if (principal == null) {
+            throw new com.bluebells.exception.UnauthorizedException("Full authentication is required to refresh token");
+        }
+        AuthResponse response = authService.refreshToken(principal);
+        return ResponseEntity.ok(ApiResponse.success("Token refreshed successfully", response));
     }
 }

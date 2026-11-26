@@ -16,6 +16,52 @@ import {
 import { apiClient } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 
+interface ClassStrengthItem {
+  categoryName: string;
+  count: number;
+}
+
+interface GenderDistributionItem {
+  gender: string;
+  count: number;
+  percentage: number;
+}
+
+interface SectionDistributionItem {
+  className: string;
+  sectionName: string;
+  studentCount: number;
+}
+
+interface ChronicAbsenteeItem {
+  studentName: string;
+  admissionNumber: string;
+  className: string;
+  sectionName: string;
+  absentDays?: number;
+  absentCount?: number;
+}
+
+interface ClassBalanceItem {
+  className: string;
+  billedAmount: number;
+  collectedAmount: number;
+  pendingBalance: number;
+  collectionRate: number;
+}
+
+interface AtRiskStudentItem {
+  studentName: string;
+  admissionNumber: string;
+  className: string;
+  averageMarks: number;
+}
+
+interface DepartmentBreakdownItem {
+  departmentName: string;
+  staffCount: number;
+}
+
 export const AnalyticsPage: React.FC = () => {
   const { user } = useAuth();
   const isLeadership = user?.roles?.some(r => ['ROLE_SUPER_ADMIN', 'ROLE_SCHOOL_ADMIN', 'ROLE_PRINCIPAL', 'ROLE_VICE_PRINCIPAL'].includes(r));
@@ -32,7 +78,7 @@ export const AnalyticsPage: React.FC = () => {
 
   const fetchAnalytics = () => {
     setLoading(true);
-    const params: any = {};
+    const params: Record<string, string> = {};
     if (startDate) params.startDate = startDate;
     if (endDate) params.endDate = endDate;
 
@@ -283,7 +329,7 @@ export const AnalyticsPage: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
-                      {(students.classWiseStrength || []).map((c: any, idx: number) => (
+                      {(students.classWiseStrength || []).map((c: ClassStrengthItem, idx: number) => (
                         <tr key={idx} className="hover:bg-slate-50">
                           <td className="p-3 font-bold text-slate-800">{c.categoryName}</td>
                           <td className="p-3 text-slate-700">{c.count} students</td>
@@ -316,7 +362,7 @@ export const AnalyticsPage: React.FC = () => {
                 <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Gender Demographics</h4>
                   <div className="space-y-3">
-                    {(students.genderDistribution || []).map((g: any, i: number) => (
+                    {(students.genderDistribution || []).map((g: GenderDistributionItem, i: number) => (
                       <div key={i}>
                         <div className="flex justify-between text-xs font-semibold mb-1">
                           <span className="capitalize text-slate-700">{g.gender}</span>
@@ -336,7 +382,7 @@ export const AnalyticsPage: React.FC = () => {
                 <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm col-span-2">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Section Distribution</h4>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    {(students.sectionWiseDistribution || []).map((s: any, idx: number) => (
+                    {(students.sectionWiseDistribution || []).map((s: SectionDistributionItem, idx: number) => (
                       <div key={idx} className="bg-slate-50 p-3 rounded-xl border border-slate-200">
                         <div className="text-xs font-bold text-slate-800">{s.className} - {s.sectionName}</div>
                         <div className="text-lg font-black text-brand-900 mt-1">{s.studentCount} Students</div>
@@ -356,7 +402,7 @@ export const AnalyticsPage: React.FC = () => {
                   <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Chronic Absenteeism Watchlist</h4>
                   <p className="text-xs text-slate-500 mb-4">Students with repeated absences requiring urgent parent outreach.</p>
                   <div className="space-y-2">
-                    {(attendance.chronicAbsentees || []).map((st: any, idx: number) => (
+                    {(attendance.chronicAbsentees || []).map((st: ChronicAbsenteeItem, idx: number) => (
                       <div key={idx} className="flex items-center justify-between p-3 bg-red-50/60 border border-red-200 rounded-xl text-xs">
                         <div>
                           <div className="font-bold text-slate-900">{st.studentName}</div>
@@ -435,7 +481,7 @@ export const AnalyticsPage: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
-                      {(financial.classWiseBalances || []).map((c: any, i: number) => (
+                      {(financial.classWiseBalances || []).map((c: ClassBalanceItem, i: number) => (
                         <tr key={i} className="hover:bg-slate-50">
                           <td className="p-3 font-bold text-slate-900">{c.className}</td>
                           <td className="p-3 text-slate-700">PKR {Number(c.billedAmount || 0).toLocaleString()}</td>
@@ -457,7 +503,7 @@ export const AnalyticsPage: React.FC = () => {
               <h3 className="font-bold text-sm text-slate-800">Academic Support & At-Risk Watchlist</h3>
               <p className="text-xs text-slate-500">Identified students who scored below 40% across examination terms.</p>
               <div className="divide-y divide-slate-100">
-                {(academics.atRiskStudents || []).map((s: any, idx: number) => (
+                {(academics.atRiskStudents || []).map((s: AtRiskStudentItem, idx: number) => (
                   <div key={idx} className="py-3 flex items-center justify-between text-xs">
                     <div>
                       <span className="font-bold text-slate-900">{s.studentName}</span>
@@ -498,7 +544,7 @@ export const AnalyticsPage: React.FC = () => {
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
               <h3 className="font-bold text-sm text-slate-800 mb-3">Faculty Department Breakdown & Workload</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                {(staff.departmentBreakdown || []).map((d: any, i: number) => (
+                {(staff.departmentBreakdown || []).map((d: DepartmentBreakdownItem, i: number) => (
                   <div key={i} className="p-4 bg-slate-50 rounded-xl border border-slate-200">
                     <div className="text-xs font-bold text-slate-500 uppercase">{d.departmentName}</div>
                     <div className="text-2xl font-black text-slate-900 mt-1">{d.staffCount} Staff</div>

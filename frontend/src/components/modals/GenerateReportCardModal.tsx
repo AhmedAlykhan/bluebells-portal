@@ -64,6 +64,9 @@ export const GenerateReportCardModal: React.FC<GenerateReportCardModalProps> = (
       }}
     >
       <div 
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="generate-report-title"
         className="relative bg-white w-full max-w-xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-8"
         onClick={(e) => e.stopPropagation()}
       >
@@ -72,7 +75,7 @@ export const GenerateReportCardModal: React.FC<GenerateReportCardModalProps> = (
           <div className="flex items-center gap-2">
             <Award className="w-5 h-5 text-amber-400" />
             <div>
-              <h3 className="font-bold text-sm">Generate Student Report Card</h3>
+              <h3 id="generate-report-title" className="font-bold text-sm">Generate Student Report Card</h3>
               <p className="text-xs text-slate-400">Select grade, class section, and student to generate Sindh Board transcript</p>
             </div>
           </div>

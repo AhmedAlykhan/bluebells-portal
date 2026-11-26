@@ -14,6 +14,7 @@ import com.bluebells.students.Enrollment;
 import com.bluebells.students.EnrollmentRepository;
 import com.bluebells.students.Student;
 import com.bluebells.students.StudentRepository;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class FeeService {
+
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(FeeService.class);
 
     private final FeeCategoryRepository categoryRepository;
     private final FeeStructureRepository structureRepository;
@@ -200,6 +203,8 @@ public class FeeService {
         }
 
         FeeInvoice saved = invoiceRepository.save(invoice);
+        log.info("Fee invoice created: invoiceNumber={}, studentId={}, billingMonth={}, totalAmount=PKR {}",
+                saved.getInvoiceNumber(), student.getId(), saved.getBillingMonth(), saved.getTotalAmount());
         return FeeInvoiceDto.fromEntity(saved);
     }
 
@@ -399,6 +404,8 @@ public class FeeService {
         }
 
         Payment savedPayment = paymentRepository.save(payment);
+        log.info("Payment recorded successfully: paymentReference={}, studentId={}, amount=PKR {}, method={}",
+                savedPayment.getPaymentReference(), student.getId(), savedPayment.getAmount(), savedPayment.getPaymentMethod());
         return PaymentDto.fromEntity(savedPayment);
     }
 
@@ -411,7 +418,7 @@ public class FeeService {
 
     @Transactional(readOnly = true)
     public List<FeeInvoiceDto> getAllInvoices(String status, String billingMonth) {
-        List<FeeInvoice> invoices = invoiceRepository.findAll(Sort.by(Sort.Direction.DESC, "dueDate"));
+        List<FeeInvoice> invoices = invoiceRepository.findAll(PageRequest.of(0, 500, Sort.by(Sort.Direction.DESC, "dueDate"))).getContent();
         return invoices.stream()
                 .filter(inv -> status == null || status.isBlank() || inv.getStatus().equalsIgnoreCase(status))
                 .filter(inv -> billingMonth == null || billingMonth.isBlank() || inv.getBillingMonth().equalsIgnoreCase(billingMonth))
@@ -421,7 +428,7 @@ public class FeeService {
 
     @Transactional(readOnly = true)
     public List<PaymentDto> getAllPayments() {
-        return paymentRepository.findAll(Sort.by(Sort.Direction.DESC, "paymentDate")).stream()
+        return paymentRepository.findAll(PageRequest.of(0, 500, Sort.by(Sort.Direction.DESC, "paymentDate"))).getContent().stream()
                 .map(PaymentDto::fromEntity)
                 .collect(Collectors.toList());
     }

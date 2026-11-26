@@ -82,6 +82,16 @@ export function SubmitAssignmentModal({
     }
   }, [isOpen, existingSubmission]);
 
+  useEffect(() => {
+    return () => {
+      files.forEach((f) => {
+        if (f.previewUrl && f.previewUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(f.previewUrl);
+        }
+      });
+    };
+  }, [files]);
+
   if (!isOpen || !assignment) return null;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -101,7 +111,13 @@ export function SubmitAssignmentModal({
   };
 
   const removeFile = (index: number) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index));
+    setFiles((prev) => {
+      const target = prev[index];
+      if (target?.previewUrl && target.previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(target.previewUrl);
+      }
+      return prev.filter((_, i) => i !== index);
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

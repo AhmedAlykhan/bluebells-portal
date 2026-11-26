@@ -5,12 +5,15 @@ import com.bluebells.common.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/api/v1/certificates")
 @Tag(name = "Digital Certificates", description = "Digital certificate management, issuance, and public verification")
@@ -35,7 +38,7 @@ public class CertificateController {
     @Operation(summary = "Create or update certificate template")
     public ResponseEntity<ApiResponse<CertificateTemplateDto>> saveTemplate(@Valid @RequestBody CertificateTemplateDto dto) {
         CertificateTemplateDto saved = certificateService.saveTemplate(dto);
-        return ResponseEntity.ok(ApiResponse.success("Template saved", saved));
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Template saved", saved));
     }
 
     @GetMapping
@@ -59,7 +62,8 @@ public class CertificateController {
     @Operation(summary = "Issue certificate to a student")
     public ResponseEntity<ApiResponse<IssuedCertificateDto>> issueCertificate(@Valid @RequestBody IssueCertificateRequest req) {
         IssuedCertificateDto issued = certificateService.issueCertificate(req);
-        return ResponseEntity.ok(ApiResponse.success("Certificate issued successfully", issued));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Certificate issued successfully", issued));
     }
 
     @GetMapping("/verify/{code}")

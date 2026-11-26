@@ -225,6 +225,9 @@ export function FeeChallanModal({
 
   return (
     <div 
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="challan-modal-title"
       className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/75 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 print:p-0 print:bg-white print:static"
       onClick={(e) => {
         if (e.target === e.currentTarget) {
@@ -258,7 +261,7 @@ export function FeeChallanModal({
               Rs
             </div>
             <div>
-              <h2 className="text-base font-bold text-white">Official 3-Copy Bank Fee Challan</h2>
+              <h2 id="challan-modal-title" className="text-base font-bold text-white">Official 3-Copy Bank Fee Challan</h2>
               <p className="text-xs text-slate-400">Standard Bank Deposit Voucher (Bank Copy, School Copy, Student Copy)</p>
             </div>
           </div>

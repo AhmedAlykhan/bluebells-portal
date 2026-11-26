@@ -57,10 +57,15 @@ export const NewAdmissionModal: React.FC<NewAdmissionModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95">
+      <div 
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="new-admission-title"
+        className="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95"
+      >
         <div className="px-6 py-4 bg-brand-900 text-white flex items-center justify-between">
           <div>
-            <h3 className="font-bold text-base">New Student Admission Application</h3>
+            <h3 id="new-admission-title" className="font-bold text-base">New Student Admission Application</h3>
             <p className="text-xs text-brand-200">Bluebells Schooling System • Latifabad Unit 2</p>
           </div>
           <button onClick={onClose} className="text-white/70 hover:text-white p-1 rounded-lg">

@@ -91,4 +91,19 @@ public class AuthService {
         userRepository.save(user);
         log.info("Password changed successfully for user: {}", user.getUsername());
     }
+
+    @Transactional(readOnly = true)
+    public AuthResponse refreshToken(UserPrincipal principal) {
+        User user = userRepository.findById(principal.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", principal.getId()));
+
+        if (!"ACTIVE".equalsIgnoreCase(user.getStatus())) {
+            throw new UnauthorizedException("User account is inactive");
+        }
+
+        UserPrincipal freshPrincipal = UserPrincipal.create(user);
+        String token = jwtTokenProvider.generateToken(freshPrincipal);
+        log.info("Token refreshed successfully for user: {}", user.getUsername());
+        return new AuthResponse(token, 86400, UserSummaryDto.fromEntity(user));
+    }
 }

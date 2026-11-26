@@ -29,6 +29,8 @@ import java.util.stream.Collectors;
 @Service
 public class CertificateService {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CertificateService.class);
+
     private final CertificateTemplateRepository templateRepository;
     private final IssuedCertificateRepository certificateRepository;
     private final StudentRepository studentRepository;
@@ -191,6 +193,8 @@ public class CertificateService {
         cert.setStatus("ISSUED");
 
         IssuedCertificate saved = certificateRepository.save(cert);
+        log.info("Certificate issued: certNumber={}, studentId={}, type={}, issuedBy={}",
+                saved.getCertificateNumber(), student.getId(), saved.getCertificateType(), currentUser.getUsername());
         return mapCertificateToDto(saved);
     }
 
@@ -236,6 +240,7 @@ public class CertificateService {
         cert.setStatus("REVOKED");
         cert.setRevocationReason(reason.trim());
         certificateRepository.save(cert);
+        log.warn("Certificate revoked: certNumber={}, reason={}", cert.getCertificateNumber(), reason.trim());
     }
 
     private void verifyReadAccessForStudent(Long studentId) {

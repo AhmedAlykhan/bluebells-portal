@@ -93,6 +93,9 @@ export const ReportCardModal: React.FC<ReportCardModalProps> = ({
       `}</style>
 
       <div 
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="report-card-title"
         className="relative bg-white w-full max-w-5xl rounded-2xl shadow-2xl border border-slate-200 overflow-hidden my-4 print:my-0 print:border-none print:shadow-none print:w-full print:max-w-none"
         onClick={(e) => e.stopPropagation()}
       >
@@ -103,7 +106,7 @@ export const ReportCardModal: React.FC<ReportCardModalProps> = ({
               <Award className="w-5 h-5 text-amber-400" />
             </span>
             <div>
-              <span className="font-bold text-sm block">Official Academic Transcript & Progress Report</span>
+              <span id="report-card-title" className="font-bold text-sm block">Official Academic Transcript & Progress Report</span>
               <span className="text-[11px] text-slate-400">Board of Secondary Education Hyderabad (BISEH) Standard</span>
             </div>
           </div>

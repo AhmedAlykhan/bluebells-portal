@@ -8,6 +8,7 @@ import com.bluebells.idcard.dto.VerifyIdCardResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -38,7 +39,8 @@ public class StudentIdCardController {
     @Operation(summary = "Generate ID card for an individual student")
     public ResponseEntity<ApiResponse<StudentIdCardDto>> generateCard(@Valid @RequestBody GenerateIdCardRequest req) {
         StudentIdCardDto card = cardService.generateOrGetCard(req);
-        return ResponseEntity.ok(ApiResponse.success("ID card generated successfully", card));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("ID card generated successfully", card));
     }
 
     @PostMapping("/generate-bulk")
@@ -48,7 +50,8 @@ public class StudentIdCardController {
             @RequestParam Long sectionId,
             @RequestParam Long sessionId) {
         List<StudentIdCardDto> cards = cardService.bulkGenerateForSection(sectionId, sessionId);
-        return ResponseEntity.ok(ApiResponse.success("Bulk ID cards generated", cards));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Bulk ID cards generated", cards));
     }
 
     @PostMapping("/generate-all")
@@ -57,7 +60,8 @@ public class StudentIdCardController {
     public ResponseEntity<ApiResponse<List<StudentIdCardDto>>> bulkGenerateAll(
             @RequestParam(required = false) Long sessionId) {
         List<StudentIdCardDto> cards = cardService.bulkGenerateAll(sessionId);
-        return ResponseEntity.ok(ApiResponse.success("Generated ID cards for all students", cards));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Generated ID cards for all students", cards));
     }
 
     @PostMapping("/{cardId}/reissue")
@@ -67,7 +71,8 @@ public class StudentIdCardController {
             @PathVariable Long cardId,
             @Valid @RequestBody ReissueIdCardRequest req) {
         StudentIdCardDto reissued = cardService.reissueCard(cardId, req);
-        return ResponseEntity.ok(ApiResponse.success("ID card reissued successfully", reissued));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("ID card reissued successfully", reissued));
     }
 
     @GetMapping("/verify/{token}")

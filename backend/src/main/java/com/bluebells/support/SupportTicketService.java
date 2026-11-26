@@ -10,6 +10,9 @@ import com.bluebells.security.UserPrincipal;
 import com.bluebells.students.Student;
 import com.bluebells.students.StudentRepository;
 import com.bluebells.support.dto.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,6 +26,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class SupportTicketService {
+
+    private static final Logger log = LoggerFactory.getLogger(SupportTicketService.class);
 
     private final SupportTicketRepository ticketRepository;
     private final SupportTicketMessageRepository messageRepository;
@@ -57,7 +62,7 @@ public class SupportTicketService {
             if (status != null && !status.isEmpty()) {
                 list = ticketRepository.findByStatusOrderByCreatedAtDesc(status.toUpperCase());
             } else {
-                list = ticketRepository.findAll();
+                list = ticketRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
             }
         } else {
             // Parents and Students see ONLY their own tickets
@@ -130,6 +135,9 @@ public class SupportTicketService {
         initialMsg.setInternalNote(false);
         messageRepository.save(initialMsg);
 
+        log.info("Support ticket created: ticketNumber={}, category={}, priority={}, userId={}",
+                saved.getTicketNumber(), saved.getCategory(), saved.getPriority(), currentUser.getId());
+
         return mapToDto(saved, isStaffUser(currentUser));
     }
 
@@ -198,6 +206,8 @@ public class SupportTicketService {
         }
 
         SupportTicket saved = ticketRepository.save(ticket);
+        log.info("Support ticket status updated: ticketId={}, ticketNumber={}, newStatus={}, updatedBy={}",
+                saved.getId(), saved.getTicketNumber(), saved.getStatus(), currentUser.getUsername());
         return mapToDto(saved, true);
     }
 
@@ -221,6 +231,8 @@ public class SupportTicketService {
         }
 
         SupportTicket saved = ticketRepository.save(ticket);
+        log.info("Support ticket escalated: ticketId={}, ticketNumber={}, escalationLevel={}, escalatedBy={}",
+                saved.getId(), saved.getTicketNumber(), newLevel, currentUser.getUsername());
         return mapToDto(saved, true);
     }
 
