@@ -65,4 +65,17 @@ public class Role {
     public void setPermissions(Set<Permission> permissions) {
         this.permissions = permissions;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Role role = (Role) o;
+        return java.util.Objects.equals(name, role.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return java.util.Objects.hashCode(name);
+    }
 }

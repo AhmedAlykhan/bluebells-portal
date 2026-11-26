@@ -1,6 +1,7 @@
 package com.bluebells.dataimport.service;
 
 import com.bluebells.academics.*;
+import com.bluebells.common.SchoolConstants;
 import com.bluebells.dataimport.dto.*;
 import com.bluebells.dataimport.entity.DataImportError;
 import com.bluebells.dataimport.entity.DataImportJob;
@@ -328,9 +329,9 @@ public class DataImportValidationService {
                 LocalDate dob = parseDate(dobStr);
                 if (dob == null) {
                     rowErrors.add(new DataImportError(job, rowNum, "Students", "date_of_birth", dobStr, "INVALID_DATE_FORMAT", "Date of birth must be in YYYY-MM-DD format.", "ERROR"));
-                } else if (dob.isAfter(LocalDate.now())) {
+                } else if (dob.isAfter(SchoolConstants.today())) {
                     rowErrors.add(new DataImportError(job, rowNum, "Students", "date_of_birth", dobStr, "DATE_IN_FUTURE", "Date of birth cannot be in the future.", "ERROR"));
-                } else if (dob.isAfter(LocalDate.now().minusYears(2))) {
+                } else if (dob.isAfter(SchoolConstants.today().minusYears(2))) {
                     rowErrors.add(new DataImportError(job, rowNum, "Students", "date_of_birth", dobStr, "AGE_TOO_YOUNG", "Student must be at least 2 years old.", "ERROR"));
                 }
             }

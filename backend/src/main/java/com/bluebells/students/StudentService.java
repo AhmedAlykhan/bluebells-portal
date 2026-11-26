@@ -4,6 +4,7 @@ import com.bluebells.academics.AcademicSession;
 import com.bluebells.academics.AcademicSessionRepository;
 import com.bluebells.academics.Section;
 import com.bluebells.academics.SectionRepository;
+import com.bluebells.common.SchoolConstants;
 import com.bluebells.exception.ApiException;
 import com.bluebells.exception.ResourceNotFoundException;
 import com.bluebells.students.dto.CreateStudentRequest;
@@ -93,7 +94,7 @@ public class StudentService {
         student.setBloodGroup(request.getBloodGroup());
         student.setBFormNumber(request.getBFormNumber());
         student.setResidentialAddress(request.getResidentialAddress());
-        student.setAdmissionDate(request.getAdmissionDate() != null ? request.getAdmissionDate() : LocalDate.now());
+        student.setAdmissionDate(request.getAdmissionDate() != null ? request.getAdmissionDate() : SchoolConstants.today());
         student.setStatus("ACTIVE");
 
         Student savedStudent = studentRepository.save(student);
@@ -104,7 +105,7 @@ public class StudentService {
                 session,
                 section,
                 request.getRollNumber(),
-                request.getAdmissionDate() != null ? request.getAdmissionDate() : LocalDate.now()
+                request.getAdmissionDate() != null ? request.getAdmissionDate() : SchoolConstants.today()
         );
         enrollmentRepository.save(enrollment);
 
@@ -134,7 +135,7 @@ public class StudentService {
             throw new ApiException(HttpStatus.CONFLICT, "Student is already enrolled in academic session: " + session.getName());
         }
 
-        Enrollment enrollment = new Enrollment(student, session, section, rollNumber, LocalDate.now());
+        Enrollment enrollment = new Enrollment(student, session, section, rollNumber, SchoolConstants.today());
         enrollmentRepository.save(enrollment);
         student.getEnrollments().add(enrollment);
 

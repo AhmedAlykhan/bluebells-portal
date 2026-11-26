@@ -165,7 +165,7 @@ public class StudentIdCardTest {
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.cardNumber").value(startsWith("IDC-")))
                 .andExpect(jsonPath("$.data.studentName").value("Zain Abbas"))
                 .andExpect(jsonPath("$.data.qrVerificationToken").isString())
@@ -189,7 +189,7 @@ public class StudentIdCardTest {
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andReturn();
 
         long cardId = objectMapper.readTree(genResult.getResponse().getContentAsString()).get("data").get("id").asLong();
@@ -201,7 +201,7 @@ public class StudentIdCardTest {
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(reissueReq)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.status").value("ACTIVE"))
                 .andExpect(jsonPath("$.data.cardNumber").value(containsString("-R")))
                 .andExpect(jsonPath("$.data.reissueCount").value(greaterThanOrEqualTo(1)));
@@ -222,7 +222,7 @@ public class StudentIdCardTest {
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andReturn();
 
         String token = objectMapper.readTree(genResult.getResponse().getContentAsString()).get("data").get("qrVerificationToken").asText();
@@ -263,7 +263,7 @@ public class StudentIdCardTest {
                         .header("Authorization", "Bearer " + teacherToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.studentName").value("Zain Abbas"));
     }
 
@@ -271,12 +271,14 @@ public class StudentIdCardTest {
     @DisplayName("Get active card when none exists returns 200 with data null rather than crashing")
     void testGetActiveCardWhenNoneExistsReturnsNull() throws Exception {
         // Create an uncarded student
-        Student uncarded = studentRepository.save(new Student());
-        uncarded.setAdmissionNumber("BSS-TEMP-999");
+        Student uncarded = new Student();
+        uncarded.setAdmissionNumber("BSS-TEMP-" + (System.currentTimeMillis() % 1000000));
         uncarded.setFirstName("Farhan");
         uncarded.setLastName("Ali");
         uncarded.setDateOfBirth(LocalDate.of(2012, 1, 1));
         uncarded.setGender("MALE");
+        uncarded.setResidentialAddress("Latifabad Unit 2, Hyderabad");
+        uncarded.setAdmissionDate(LocalDate.now());
         uncarded.setStatus("ACTIVE");
         uncarded = studentRepository.save(uncarded);
 
@@ -293,7 +295,7 @@ public class StudentIdCardTest {
         mockMvc.perform(post("/api/v1/id-cards/generate-all")
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data").isArray());
     }
 }

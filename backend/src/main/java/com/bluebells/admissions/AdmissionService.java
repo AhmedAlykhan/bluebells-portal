@@ -9,6 +9,7 @@ import com.bluebells.academics.SectionRepository;
 import com.bluebells.admissions.dto.AdmissionApplicationDto;
 import com.bluebells.admissions.dto.CreateApplicationRequest;
 import com.bluebells.admissions.dto.EnrollApplicantRequest;
+import com.bluebells.common.SchoolConstants;
 import com.bluebells.exception.ApiException;
 import com.bluebells.exception.ResourceNotFoundException;
 import com.bluebells.guardians.Guardian;
@@ -170,7 +171,7 @@ public class AdmissionService {
         student.setGender(app.getGender());
         student.setBFormNumber(request.getBFormNumber());
         student.setResidentialAddress(request.getResidentialAddress());
-        student.setAdmissionDate(request.getAdmissionDate() != null ? request.getAdmissionDate() : LocalDate.now());
+        student.setAdmissionDate(request.getAdmissionDate() != null ? request.getAdmissionDate() : SchoolConstants.today());
         student.setStatus("ACTIVE");
 
         Student savedStudent = studentRepository.save(student);
@@ -209,7 +210,7 @@ public class AdmissionService {
                 session,
                 section,
                 request.getRollNumber(),
-                request.getAdmissionDate() != null ? request.getAdmissionDate() : LocalDate.now()
+                request.getAdmissionDate() != null ? request.getAdmissionDate() : SchoolConstants.today()
         );
         enrollmentRepository.save(enrollment);
 

@@ -18,13 +18,13 @@ public class DataImportAuditService {
         this.userRepository = userRepository;
     }
 
-    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
+    @Transactional
     public void logAudit(DataImportJob job, String action, String status, String details, String ipAddress, String userAgent) {
         User user = job != null ? job.getUploadedBy() : null;
         logAudit(job, user, action, status, details, ipAddress, userAgent);
     }
 
-    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
+    @Transactional
     public void logAudit(DataImportJob job, User user, String action, String status, String details, String ipAddress, String userAgent) {
         if (user == null && job != null) {
             user = job.getUploadedBy();
@@ -38,7 +38,7 @@ public class DataImportAuditService {
         }
     }
 
-    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
+    @Transactional
     public void log(DataImportJob job, User user, String action, String ipAddress, String details) {
         logAudit(job, user, action, "SUCCESS", details, ipAddress, null);
     }

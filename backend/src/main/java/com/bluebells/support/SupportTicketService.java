@@ -1,5 +1,6 @@
 package com.bluebells.support;
 
+import com.bluebells.common.SchoolConstants;
 import com.bluebells.exception.ApiException;
 import com.bluebells.guardians.Guardian;
 import com.bluebells.guardians.GuardianRepository;
@@ -110,7 +111,7 @@ public class SupportTicketService {
             dept = mapCategoryToDepartment(req.getCategory());
         }
 
-        String ticketNumber = "TKT-" + LocalDate.now().getYear() + "-" + String.format("%04d", (ticketRepository.count() + 1));
+        String ticketNumber = "TKT-" + SchoolConstants.today().getYear() + "-" + String.format("%04d", (ticketRepository.count() + 1));
 
         SupportTicket ticket = new SupportTicket();
         ticket.setTicketNumber(ticketNumber);

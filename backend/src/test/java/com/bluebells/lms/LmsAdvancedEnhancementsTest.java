@@ -1,5 +1,6 @@
 package com.bluebells.lms;
 
+import com.bluebells.academics.ClassEntity;
 import com.bluebells.academics.Section;
 import com.bluebells.academics.SectionRepository;
 import com.bluebells.academics.Subject;
@@ -141,11 +142,11 @@ class LmsAdvancedEnhancementsTest {
         student.setStatus("ACTIVE");
         student = studentRepository.save(student);
 
-        Section section = sectionRepository.findAll().stream().findFirst().orElseThrow();
+        ClassEntity cls = sectionRepository.findAll().get(0).getClassEntity();
+        Section section = sectionRepository.save(new Section(cls, "AdvSec-" + (System.currentTimeMillis() % 100000), "R-ADV", 30));
         Subject subject = subjectRepository.findAll().stream().findFirst().orElseThrow();
 
-        course = new Course(subject, section, teacher, "Advanced Matric Mathematics", "Curriculum for Class 9 Matriculation");
-        course = courseRepository.save(course);
+        course = courseRepository.save(new Course(subject, section, teacher, "Advanced Matric Mathematics", "Curriculum for Class 9 Matriculation"));
     }
 
     @Test

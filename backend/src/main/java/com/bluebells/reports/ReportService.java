@@ -12,6 +12,7 @@ import com.bluebells.students.Enrollment;
 import com.bluebells.students.EnrollmentRepository;
 import com.bluebells.students.Student;
 import com.bluebells.students.StudentRepository;
+import com.bluebells.common.SchoolConstants;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,7 +67,7 @@ public class ReportService {
             totalOutstanding = totalOutstanding.add(inv.getBalanceDue());
         }
 
-        List<StudentAttendance> todayAttendance = attendanceRepository.findByAttendanceDate(LocalDate.now());
+        List<StudentAttendance> todayAttendance = attendanceRepository.findByAttendanceDate(SchoolConstants.today());
         BigDecimal attendanceRate = new BigDecimal("100.00");
         if (!todayAttendance.isEmpty()) {
             long presentCount = todayAttendance.stream()
@@ -110,7 +111,7 @@ public class ReportService {
 
     @Transactional(readOnly = true)
     public String exportAttendanceCsv(LocalDate targetDate) {
-        LocalDate date = (targetDate != null) ? targetDate : LocalDate.now();
+        LocalDate date = (targetDate != null) ? targetDate : SchoolConstants.today();
         StringBuilder sb = new StringBuilder();
         sb.append("Record ID,Date,Admission Number,Student Name,Class,Section,Status,Remarks\n");
 

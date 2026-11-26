@@ -1,5 +1,6 @@
 package com.bluebells.lms;
 
+import com.bluebells.academics.ClassEntity;
 import com.bluebells.academics.Section;
 import com.bluebells.academics.SectionRepository;
 import com.bluebells.academics.Subject;
@@ -132,7 +133,8 @@ class LmsCourseworkAndGradingLifecycleTest {
                     return guardianRepository.save(g);
                 });
 
-        sectionA = sectionRepository.findAll().get(0);
+        ClassEntity cls = sectionRepository.findAll().get(0).getClassEntity();
+        sectionA = sectionRepository.save(new Section(cls, "LMS-" + (System.currentTimeMillis() % 100000), "R-LMS", 30));
         mathSubject = subjectRepository.findAll().get(0);
 
         student1 = new Student();

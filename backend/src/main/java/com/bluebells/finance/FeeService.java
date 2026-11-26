@@ -4,6 +4,7 @@ import com.bluebells.academics.AcademicSession;
 import com.bluebells.academics.AcademicSessionRepository;
 import com.bluebells.academics.ClassEntity;
 import com.bluebells.academics.ClassRepository;
+import com.bluebells.common.SchoolConstants;
 import com.bluebells.exception.ApiException;
 import com.bluebells.exception.ResourceNotFoundException;
 import com.bluebells.finance.dto.*;
@@ -315,7 +316,7 @@ public class FeeService {
             throw new ApiException(HttpStatus.BAD_REQUEST, "Payment amount must be greater than zero");
         }
 
-        LocalDate payDate = request.getPaymentDate() != null ? request.getPaymentDate() : LocalDate.now();
+        LocalDate payDate = request.getPaymentDate() != null ? request.getPaymentDate() : SchoolConstants.today();
         String dateFormatted = payDate.toString().replace("-", "");
         String ref = generateUniquePaymentReference(dateFormatted);
 

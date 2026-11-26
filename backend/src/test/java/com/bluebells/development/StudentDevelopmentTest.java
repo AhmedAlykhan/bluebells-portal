@@ -188,7 +188,7 @@ public class StudentDevelopmentTest {
                         .header("Authorization", "Bearer " + teacherToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.id").isNumber())
                 .andExpect(jsonPath("$.data.title").value("Inter-School Football Championship Gold Medal"))
                 .andExpect(jsonPath("$.data.category").value("SPORTS"))
@@ -231,7 +231,7 @@ public class StudentDevelopmentTest {
                         .header("Authorization", "Bearer " + teacherToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.status").value("PENDING_REVIEW"))
                 .andReturn();
 

@@ -1,12 +1,22 @@
 package com.bluebells.certificates;
 
+import com.bluebells.academics.AcademicSession;
+import com.bluebells.academics.AcademicSessionRepository;
+import com.bluebells.academics.Section;
+import com.bluebells.academics.SectionRepository;
 import com.bluebells.certificates.dto.IssueCertificateRequest;
+import com.bluebells.guardians.Guardian;
+import com.bluebells.guardians.GuardianRepository;
+import com.bluebells.guardians.GuardianStudentLink;
+import com.bluebells.guardians.GuardianStudentLinkRepository;
 import com.bluebells.identity.Role;
 import com.bluebells.identity.RoleRepository;
 import com.bluebells.identity.User;
 import com.bluebells.identity.UserRepository;
 import com.bluebells.security.JwtTokenProvider;
 import com.bluebells.security.UserPrincipal;
+import com.bluebells.students.Enrollment;
+import com.bluebells.students.EnrollmentRepository;
 import com.bluebells.students.Student;
 import com.bluebells.students.StudentRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -52,6 +62,21 @@ public class CertificateServiceTest {
     private CertificateTemplateRepository templateRepository;
 
     @Autowired
+    private AcademicSessionRepository academicSessionRepository;
+
+    @Autowired
+    private SectionRepository sectionRepository;
+
+    @Autowired
+    private EnrollmentRepository enrollmentRepository;
+
+    @Autowired
+    private GuardianRepository guardianRepository;
+
+    @Autowired
+    private GuardianStudentLinkRepository guardianStudentLinkRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
@@ -95,6 +120,22 @@ public class CertificateServiceTest {
         });
         studentId = student.getId();
 
+        AcademicSession session = academicSessionRepository.findByCurrentTrue().orElseGet(() -> academicSessionRepository.findAll().get(0));
+        Section sec = sectionRepository.findAll().get(0);
+        if (enrollmentRepository.findByStudentIdAndAcademicSessionId(studentId, session.getId()).isEmpty()) {
+            Enrollment e = new Enrollment(student, session, sec, "05", LocalDate.now());
+            enrollmentRepository.save(e);
+        }
+
+        Guardian guardian = guardianRepository.findByUserId(admin.getId()).orElseGet(() -> {
+            Guardian g = new Guardian("Tariq Siddiqui", "FATHER", "+92 300 1234567", "41303-1234567-1");
+            g.setUser(admin);
+            return guardianRepository.save(g);
+        });
+        if (!guardianStudentLinkRepository.existsByGuardianUserIdAndStudentId(admin.getId(), studentId)) {
+            guardianStudentLinkRepository.save(new GuardianStudentLink(guardian, student, true, true));
+        }
+
         CertificateTemplate tpl = templateRepository.findByCertificateTypeAndActiveTrue("MERIT").orElseGet(() -> {
             CertificateTemplate t = new CertificateTemplate();
             t.setTitle("Certificate of Academic Merit");
@@ -135,7 +176,7 @@ public class CertificateServiceTest {
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.certificateNumber").value(startsWith("BSS-CERT-")))
                 .andExpect(jsonPath("$.data.verificationCode").isString())
                 .andExpect(jsonPath("$.data.recipientName").value("Hamza Siddiqui"))
@@ -168,7 +209,7 @@ public class CertificateServiceTest {
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andReturn();
 
         long certId = objectMapper.readTree(result.getResponse().getContentAsString()).get("data").get("id").asLong();

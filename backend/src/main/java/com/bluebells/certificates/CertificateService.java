@@ -3,6 +3,7 @@ package com.bluebells.certificates;
 import com.bluebells.academics.AcademicSession;
 import com.bluebells.academics.AcademicSessionRepository;
 import com.bluebells.certificates.dto.*;
+import com.bluebells.common.SchoolConstants;
 import com.bluebells.exception.ApiException;
 import com.bluebells.guardians.Guardian;
 import com.bluebells.guardians.GuardianRepository;
@@ -168,7 +169,7 @@ public class CertificateService {
         long seq = certificateRepository.count() + 1;
         String certNum;
         do {
-            certNum = "BSS-CERT-" + LocalDate.now().getYear() + "-" + String.format("%04d", seq++);
+            certNum = "BSS-CERT-" + SchoolConstants.today().getYear() + "-" + String.format("%04d", seq++);
         } while (certificateRepository.existsByCertificateNumber(certNum));
 
         String vCode = "VRF-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase() + "-BSS";
@@ -186,7 +187,7 @@ public class CertificateService {
         cert.setSectionName(secName);
         cert.setAcademicSession(session.getName());
         cert.setNarrative(narrative);
-        cert.setIssueDate(req.getIssueDate() != null ? req.getIssueDate() : LocalDate.now());
+        cert.setIssueDate(req.getIssueDate() != null ? req.getIssueDate() : SchoolConstants.today());
         cert.setIssuingAuthorityName(req.getIssuingAuthorityName() != null ? req.getIssuingAuthorityName() : (template != null ? template.getDefaultSignatoryName() : "Huma Arif"));
         cert.setIssuingAuthorityTitle(req.getIssuingAuthorityTitle() != null ? req.getIssuingAuthorityTitle() : (template != null ? template.getDefaultSignatoryTitle() : "Academic Principal"));
         cert.setIssuedBy(currentUser);

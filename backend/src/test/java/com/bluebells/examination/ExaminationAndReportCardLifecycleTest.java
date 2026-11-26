@@ -21,6 +21,8 @@ import com.bluebells.identity.User;
 import com.bluebells.identity.UserRepository;
 import com.bluebells.security.JwtTokenProvider;
 import com.bluebells.security.UserPrincipal;
+import com.bluebells.staff.TeacherAssignment;
+import com.bluebells.staff.TeacherAssignmentRepository;
 import com.bluebells.students.Enrollment;
 import com.bluebells.students.EnrollmentRepository;
 import com.bluebells.students.Student;
@@ -95,6 +97,9 @@ class ExaminationAndReportCardLifecycleTest {
     private GuardianStudentLinkRepository linkRepository;
 
     @Autowired
+    private TeacherAssignmentRepository teacherAssignmentRepository;
+
+    @Autowired
     private JwtTokenProvider jwtTokenProvider;
 
     private String adminToken;
@@ -156,6 +161,9 @@ class ExaminationAndReportCardLifecycleTest {
         Section sectionA = sectionRepository.findAll().get(0);
         mathSubject = subjectRepository.findAll().get(0);
         engSubject = subjectRepository.findAll().get(1);
+
+        teacherAssignmentRepository.save(new TeacherAssignment(teacher, sectionA, mathSubject, currentSession, false));
+        teacherAssignmentRepository.save(new TeacherAssignment(teacher, sectionA, engSubject, currentSession, false));
 
         student1 = new Student();
         student1.setAdmissionNumber("BSS-EXAM-001");

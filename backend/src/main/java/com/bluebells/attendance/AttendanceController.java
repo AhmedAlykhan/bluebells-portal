@@ -5,6 +5,7 @@ import com.bluebells.attendance.dto.AttendanceRecordDto;
 import com.bluebells.attendance.dto.AttendanceSummaryDto;
 import com.bluebells.attendance.dto.RecordSectionAttendanceRequest;
 import com.bluebells.common.ApiResponse;
+import com.bluebells.common.SchoolConstants;
 import com.bluebells.exception.ForbiddenException;
 import com.bluebells.security.AuthorizationService;
 import com.bluebells.security.UserPrincipal;
@@ -58,8 +59,8 @@ public class AttendanceController {
             @AuthenticationPrincipal UserPrincipal principal) {
         com.bluebells.students.Student student = authorizationService.getStudentForUser(principal.getId())
                 .orElseThrow(() -> new com.bluebells.exception.ResourceNotFoundException("Student profile not found"));
-        LocalDate start = (startDate != null) ? startDate : LocalDate.now().with(TemporalAdjusters.firstDayOfMonth());
-        LocalDate end = (endDate != null) ? endDate : LocalDate.now().with(TemporalAdjusters.lastDayOfMonth());
+        LocalDate start = (startDate != null) ? startDate : SchoolConstants.today().with(TemporalAdjusters.firstDayOfMonth());
+        LocalDate end = (endDate != null) ? endDate : SchoolConstants.today().with(TemporalAdjusters.lastDayOfMonth());
         List<AttendanceRecordDto> records = attendanceService.getStudentAttendanceHistory(student.getId(), start, end);
         return ResponseEntity.ok(ApiResponse.success(records));
     }
@@ -70,7 +71,7 @@ public class AttendanceController {
     public ResponseEntity<ApiResponse<List<AttendanceRecordDto>>> getSectionAttendance(
             @PathVariable Long sectionId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        LocalDate targetDate = (date != null) ? date : LocalDate.now();
+        LocalDate targetDate = (date != null) ? date : SchoolConstants.today();
         List<AttendanceRecordDto> records = attendanceService.getSectionAttendance(sectionId, targetDate);
         return ResponseEntity.ok(ApiResponse.success(records));
     }
@@ -86,8 +87,8 @@ public class AttendanceController {
 
         authorizationService.checkStudentAccess(studentId, principal);
 
-        LocalDate start = (startDate != null) ? startDate : LocalDate.now().with(TemporalAdjusters.firstDayOfMonth());
-        LocalDate end = (endDate != null) ? endDate : LocalDate.now().with(TemporalAdjusters.lastDayOfMonth());
+        LocalDate start = (startDate != null) ? startDate : SchoolConstants.today().with(TemporalAdjusters.firstDayOfMonth());
+        LocalDate end = (endDate != null) ? endDate : SchoolConstants.today().with(TemporalAdjusters.lastDayOfMonth());
 
         List<AttendanceRecordDto> records = attendanceService.getStudentAttendanceHistory(studentId, start, end);
         return ResponseEntity.ok(ApiResponse.success(records));
@@ -104,8 +105,8 @@ public class AttendanceController {
 
         authorizationService.checkStudentAccess(studentId, principal);
 
-        LocalDate start = (startDate != null) ? startDate : LocalDate.now().with(TemporalAdjusters.firstDayOfMonth());
-        LocalDate end = (endDate != null) ? endDate : LocalDate.now().with(TemporalAdjusters.lastDayOfMonth());
+        LocalDate start = (startDate != null) ? startDate : SchoolConstants.today().with(TemporalAdjusters.firstDayOfMonth());
+        LocalDate end = (endDate != null) ? endDate : SchoolConstants.today().with(TemporalAdjusters.lastDayOfMonth());
 
         AttendanceSummaryDto summary = attendanceService.getStudentAttendanceSummary(studentId, start, end);
         return ResponseEntity.ok(ApiResponse.success(summary));

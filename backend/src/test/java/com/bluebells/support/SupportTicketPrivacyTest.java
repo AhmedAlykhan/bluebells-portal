@@ -115,7 +115,7 @@ public class SupportTicketPrivacyTest {
                         .header("Authorization", "Bearer " + parentAToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.data.ticketNumber").value(startsWith("TKT-")))
                 .andExpect(jsonPath("$.data.subject").value("Fee challan bank branch inquiry"))
                 .andExpect(jsonPath("$.data.status").value("OPEN"))
@@ -143,7 +143,7 @@ public class SupportTicketPrivacyTest {
                         .header("Authorization", "Bearer " + parentAToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andReturn();
 
         long ticketId = objectMapper.readTree(result.getResponse().getContentAsString()).get("data").get("id").asLong();
@@ -169,7 +169,7 @@ public class SupportTicketPrivacyTest {
                         .header("Authorization", "Bearer " + parentAToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andReturn();
 
         long ticketId = objectMapper.readTree(result.getResponse().getContentAsString()).get("data").get("id").asLong();
@@ -183,7 +183,7 @@ public class SupportTicketPrivacyTest {
                         .header("Authorization", "Bearer " + adminToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(internalNote)))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
 
         // Admin views ticket -> Sees the internal note
         mockMvc.perform(get("/api/v1/support/tickets/" + ticketId)
@@ -213,7 +213,7 @@ public class SupportTicketPrivacyTest {
                         .header("Authorization", "Bearer " + parentAToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
+                .andExpect(status().isCreated())
                 .andReturn();
 
         long ticketId = objectMapper.readTree(result.getResponse().getContentAsString()).get("data").get("id").asLong();

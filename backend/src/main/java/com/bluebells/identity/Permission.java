@@ -59,4 +59,17 @@ public class Permission {
     public void setDescription(String description) {
         this.description = description;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Permission that = (Permission) o;
+        return java.util.Objects.equals(code, that.code);
+    }
+
+    @Override
+    public int hashCode() {
+        return java.util.Objects.hashCode(code);
+    }
 }

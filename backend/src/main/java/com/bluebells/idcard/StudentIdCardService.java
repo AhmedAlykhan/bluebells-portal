@@ -2,6 +2,7 @@ package com.bluebells.idcard;
 
 import com.bluebells.academics.AcademicSession;
 import com.bluebells.academics.AcademicSessionRepository;
+import com.bluebells.common.SchoolConstants;
 import com.bluebells.exception.ApiException;
 import com.bluebells.guardians.Guardian;
 import com.bluebells.guardians.GuardianRepository;
@@ -136,9 +137,9 @@ public class StudentIdCardService {
         StudentIdCard newCard = new StudentIdCard();
         newCard.setStudent(student);
         newCard.setAcademicSession(session);
-        newCard.setCardNumber("IDC-" + LocalDate.now().getYear() + "-" + String.format("%04d", student.getId()) + "-R" + (oldCard.getReissueCount() + 1));
-        newCard.setIssueDate(LocalDate.now());
-        newCard.setExpiryDate(session.getEndDate() != null ? session.getEndDate() : LocalDate.now().plusYears(1));
+        newCard.setCardNumber("IDC-" + SchoolConstants.today().getYear() + "-" + String.format("%04d", student.getId()) + "-R" + (oldCard.getReissueCount() + 1));
+        newCard.setIssueDate(SchoolConstants.today());
+        newCard.setExpiryDate(session.getEndDate() != null ? session.getEndDate() : SchoolConstants.today().plusYears(1));
         newCard.setStatus("ACTIVE");
         newCard.setReissueCount(oldCard.getReissueCount() + 1);
         newCard.setReissueReason(req.getReason());
@@ -161,7 +162,7 @@ public class StudentIdCardService {
             return VerifyIdCardResponse.invalid("This ID Card is no longer active (Status: " + card.getStatus() + "). Please present the reissued official card.");
         }
 
-        if (card.getExpiryDate() != null && card.getExpiryDate().isBefore(LocalDate.now())) {
+        if (card.getExpiryDate() != null && card.getExpiryDate().isBefore(SchoolConstants.today())) {
             return VerifyIdCardResponse.invalid("This ID Card expired on " + card.getExpiryDate() + ".");
         }
 
@@ -196,7 +197,7 @@ public class StudentIdCardService {
                             .orElseThrow(() -> new ApiException(HttpStatus.BAD_REQUEST, "No active academic session found")));
         }
 
-        String baseCardNumber = "IDC-" + LocalDate.now().getYear() + "-" + String.format("%04d", student.getId());
+        String baseCardNumber = "IDC-" + SchoolConstants.today().getYear() + "-" + String.format("%04d", student.getId());
         String cardNumber = baseCardNumber;
         int suffix = 1;
         while (cardRepository.findByCardNumber(cardNumber).isPresent()) {
@@ -207,8 +208,8 @@ public class StudentIdCardService {
         card.setStudent(student);
         card.setAcademicSession(session);
         card.setCardNumber(cardNumber);
-        card.setIssueDate(LocalDate.now());
-        card.setExpiryDate(session.getEndDate() != null ? session.getEndDate() : LocalDate.now().plusYears(1));
+        card.setIssueDate(SchoolConstants.today());
+        card.setExpiryDate(session.getEndDate() != null ? session.getEndDate() : SchoolConstants.today().plusYears(1));
         card.setStatus("ACTIVE");
         card.setReissueCount(0);
         card.setQrVerificationToken("BSS-ID-TOKEN-" + UUID.randomUUID().toString());

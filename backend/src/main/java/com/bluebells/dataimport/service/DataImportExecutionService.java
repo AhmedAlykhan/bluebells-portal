@@ -1,6 +1,7 @@
 package com.bluebells.dataimport.service;
 
 import com.bluebells.academics.*;
+import com.bluebells.common.SchoolConstants;
 import com.bluebells.dataimport.dto.ConfirmImportRequest;
 import com.bluebells.dataimport.dto.DataImportJobSummaryDto;
 import com.bluebells.dataimport.dto.ImportStatisticsDto;
@@ -249,7 +250,7 @@ public class DataImportExecutionService {
         student.setBloodGroup(bloodGroup);
         student.setBFormNumber(bForm);
         student.setResidentialAddress(resAddress != null ? resAddress : "Not provided");
-        student.setAdmissionDate(parseDate(admDateStr) != null ? parseDate(admDateStr) : LocalDate.now());
+        student.setAdmissionDate(parseDate(admDateStr) != null ? parseDate(admDateStr) : SchoolConstants.today());
         student.setStatus("ACTIVE");
         Student savedStudent = studentRepository.save(student);
 
@@ -362,7 +363,7 @@ public class DataImportExecutionService {
         staff.setDesignation(designation != null ? designation : "Staff");
         staff.setDepartment(department != null ? department : "General");
         staff.setQualification(qualification);
-        staff.setJoiningDate(parseDate(joiningDateStr) != null ? parseDate(joiningDateStr) : LocalDate.now());
+        staff.setJoiningDate(parseDate(joiningDateStr) != null ? parseDate(joiningDateStr) : SchoolConstants.today());
         if (salaryStr != null && !salaryStr.isBlank()) {
             try {
                 staff.setSalary(new BigDecimal(salaryStr.trim()));

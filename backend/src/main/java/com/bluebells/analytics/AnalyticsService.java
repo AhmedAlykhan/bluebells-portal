@@ -1,6 +1,7 @@
 package com.bluebells.analytics;
 
 import com.bluebells.academics.*;
+import com.bluebells.common.SchoolConstants;
 import com.bluebells.analytics.dto.AnalyticsFilterDto;
 import com.bluebells.analytics.dto.ManagementAnalyticsDto;
 import com.bluebells.analytics.dto.ManagementAnalyticsDto.*;
@@ -130,7 +131,7 @@ public class AnalyticsService {
 
         long totalActive = studentRepository.countByStatus("ACTIVE");
         long withdrawals = studentRepository.countByStatus("WITHDRAWN") + studentRepository.countByStatus("INACTIVE");
-        long newAdmissions = studentRepository.countByAdmissionDateAfter(LocalDate.now().minusMonths(6));
+        long newAdmissions = studentRepository.countByAdmissionDateAfter(SchoolConstants.today().minusMonths(6));
 
         // Class-wise strength
         Map<String, Long> classCounts = new LinkedHashMap<>();
@@ -203,7 +204,7 @@ public class AnalyticsService {
     // =========================================================================
     @Transactional(readOnly = true)
     public AttendanceAnalyticsDto getAttendanceAnalytics(AnalyticsFilterDto filter) {
-        LocalDate today = LocalDate.now();
+        LocalDate today = SchoolConstants.today();
         LocalDate startDate = (filter != null && filter.getStartDate() != null) ? filter.getStartDate() : today.minusDays(60);
         LocalDate endDate = (filter != null && filter.getEndDate() != null) ? filter.getEndDate() : today;
         List<StudentAttendance> allAttendance = attendanceRepository.findByAttendanceDateBetween(startDate, endDate);

@@ -4,6 +4,10 @@ import com.bluebells.academics.AcademicSession;
 import com.bluebells.academics.AcademicSessionRepository;
 import com.bluebells.academics.Section;
 import com.bluebells.academics.SectionRepository;
+import com.bluebells.academics.Subject;
+import com.bluebells.academics.SubjectRepository;
+import com.bluebells.staff.TeacherAssignment;
+import com.bluebells.staff.TeacherAssignmentRepository;
 import com.bluebells.attendance.dto.AttendanceCorrectionRequest;
 import com.bluebells.attendance.dto.AttendanceItemRequest;
 import com.bluebells.attendance.dto.RecordSectionAttendanceRequest;
@@ -87,6 +91,12 @@ class AttendanceLifecycleAndAuditTest {
     private AttendanceCorrectionRepository correctionRepository;
 
     @Autowired
+    private TeacherAssignmentRepository teacherAssignmentRepository;
+
+    @Autowired
+    private SubjectRepository subjectRepository;
+
+    @Autowired
     private JwtTokenProvider jwtTokenProvider;
 
     private String adminToken;
@@ -168,6 +178,10 @@ class AttendanceLifecycleAndAuditTest {
 
         targetSection = sectionRepository.findAll().get(0);
         AcademicSession session = sessionRepository.findByCurrentTrue().orElseGet(() -> sessionRepository.findAll().get(0));
+
+        Subject subject = subjectRepository.findAll().stream().findFirst()
+                .orElseGet(() -> subjectRepository.save(new Subject(targetSection.getClassEntity(), "General Science", "GSCI-ATT", false, 100)));
+        teacherAssignmentRepository.save(new TeacherAssignment(teacher, targetSection, subject, session, true));
 
         student1 = new Student();
         student1.setAdmissionNumber("BSS-ATT-001");
